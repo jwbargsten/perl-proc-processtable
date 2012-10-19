@@ -291,4 +291,5 @@ Revision history for Perl extension Proc::ProcessTable.
 	device tree.  
 
 0.46  	Fri, Oct 19 2012
-	-Release by new maintainer jswartz, identical to last
+	-Initial release by new maintainer jswartz, identical to 0.45 except for meta
+        files and README

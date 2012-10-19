@@ -25,3 +25,5 @@ Makefile$
 ^MANIFEST.SKIP
 MYMETA.*
 ^OS.c
+^*.c
+^*.o
