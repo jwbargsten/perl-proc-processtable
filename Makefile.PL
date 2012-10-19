@@ -10,14 +10,18 @@ sub MY::c_o {
 }
 
 WriteMakefile(
-    'NAME'	=> 'Proc::ProcessTable',
-    'VERSION_FROM' => 'ProcessTable.pm', # finds $VERSION
-    'LIBS'	=> [''],   # e.g., '-lm' 
+    'ABSTRACT' => 'Perl extension to access the unix process table',
+    'AUTHOR' => 'Jonathan Swartz <swartz@pobox.com>',
     'DEFINE'	=> '',     # e.g., '-DHAVE_SOMETHING' 
     'INC'	=> '',     # e.g., '-I/usr/include/other' 
     'LDFROM'    => '$(O_FILES)',
+    'LIBS'	=> [''],   # e.g., '-lm' 
+    'LICENSE' => 'perl',
+    'NAME'	=> 'Proc::ProcessTable',
     'OBJECT'    => 'ProcessTable.o OS.o',
     'PREREQ_PM'    => { 'File::Find' => 0, 'Storable' => 0 },
+    'VERSION_FROM' => 'ProcessTable.pm', # finds $VERSION
     'clean'     => { FILES => 'OS.c' },
-    'dist' => { COMPRESS=>"gzip", SUFFIX=>"gz" }
+    'dist' => { COMPRESS=>"gzip", SUFFIX=>"gz" },
+    'test' => { 'TESTS' => 't/*.t' },
 );

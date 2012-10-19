@@ -1,3 +1,5 @@
+^clean.pl
+^build.pl
 ^git
 ^htdocs
 ^dist.ini

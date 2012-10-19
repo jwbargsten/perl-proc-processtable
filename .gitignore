@@ -1,10 +1,12 @@
 .tidyall.d
 MANIFEST
+MANIFEST.bak
 MYMETA.json
 MYMETA.yml
 Makefile
 NOTES
 OS.c
+Proc-ProcessTable-*
 Proc-ProcessTable-*.tar.gz
 Process/MYMETA.json
 Process/MYMETA.yml
