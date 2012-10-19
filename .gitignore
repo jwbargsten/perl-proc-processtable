@@ -1,4 +1,13 @@
+.tidyall.d
+MYMETA.json
+MYMETA.yml
+Makefile
 NOTES
+OS.c
+Proc-ProcessTable-*.tar.gz
+Process/MYMETA.json
+Process/MYMETA.yml
+Process/Makefile
 TODO
 bench
 data
@@ -7,4 +16,3 @@ htdocs
 release
 tmp
 z-backup
-.tidyall.d
