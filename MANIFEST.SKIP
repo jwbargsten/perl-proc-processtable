@@ -1,0 +1,24 @@
+^git
+^htdocs
+^dist.ini
+^tidyall.ini
+^weaver.ini
+^.tidyall.d
+
+# pod2html files
+\.pm\.html
+
+# Backup files, etc.
+~$
+(^|/)#
+(^|/)\.
+\.bak$
+\.tar\.gz$
+
+# MakeMaker cruft
+Makefile$
+^Makefile.old$
+^blib
+^MANIFEST.SKIP
+MYMETA.*
+^OS.c

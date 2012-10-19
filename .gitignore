@@ -1,4 +1,5 @@
 .tidyall.d
+MANIFEST
 MYMETA.json
 MYMETA.yml
 Makefile
