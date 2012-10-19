@@ -4,5 +4,4 @@ use warnings;
 use strict;
 
 run("perl Makefile.PL");
-run("make manifest");
 run("make dist");
