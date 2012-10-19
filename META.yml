@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Proc-ProcessTable
-version:      0.45
+version:      0.46
 version_from: ProcessTable.pm
 installdirs:  site
 requires:
