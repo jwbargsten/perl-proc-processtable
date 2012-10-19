@@ -3,6 +3,7 @@
 ^git
 ^htdocs
 ^dist.ini
+^release
 ^tidyall.ini
 ^weaver.ini
 ^.tidyall.d
