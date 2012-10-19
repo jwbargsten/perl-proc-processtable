@@ -2,6 +2,19 @@ Proc::ProcessTable
 
 Please use rt.cpan.org to submit bugs and patches.
 
+MAINTENANCE STATUS
+==================
+This module is now being lightly "maintained" by Jonathan Swartz <swartz@pobox.com>.  I
+have nearly zero knowledge of the implementation within but wanted to rescue the
+distribution from abandonment and try to get critical bug fixes out. This will need to be
+a community effort.
+
+The source is in github -
+
+   https://github.com/jonswar/perl-proc-processtable
+
+Commit bits will be generously granted, send me your github id.
+
 STATUS
 ======
 This is BETA software; it seems to work, but use at your own risk :) 
