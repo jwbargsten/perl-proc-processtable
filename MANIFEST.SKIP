@@ -1,5 +1,6 @@
 ^clean.pl
 ^build.pl
+^release.pl
 ^git
 ^htdocs
 ^dist.ini
