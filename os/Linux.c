@@ -242,12 +242,8 @@ static char *read_file(const char *path, const char *extra_path,
         }
     }
 
-    /* null terminate */
-    if (*len % 20) {
-        start = obstack_base(mem_pool) + *len;
-        *start = '\0';
-    } else
-        obstack_1grow(mem_pool, '\0');
+    start = obstack_base(mem_pool) + *len;
+    *start = '\0';
 
     /* finalize our text buffer */
     text = obstack_finish(mem_pool);
