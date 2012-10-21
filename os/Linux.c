@@ -238,6 +238,7 @@ static char *read_file(const char *path, const char *extra_path,
     
         if ((result = read(fd, start, 1024)) == -1) {
             obstack_free(mem_pool, obstack_finish(mem_pool));
+            close(fd);
             return NULL;
         }
     }
