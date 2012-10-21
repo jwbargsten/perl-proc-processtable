@@ -233,10 +233,10 @@ static char *read_file(const char *path, const char *extra_path,
 
     /* read file into our buffer */
     for (*len = 0; result; *len += result) {
-        obstack_blank(mem_pool, 20);
+        obstack_blank(mem_pool, 1024);
         start = obstack_base(mem_pool) + *len;
     
-        if ((result = read(fd, start, 20)) == -1) {
+        if ((result = read(fd, start, 1024)) == -1) {
             obstack_free(mem_pool, obstack_finish(mem_pool));
             return NULL;
         }
