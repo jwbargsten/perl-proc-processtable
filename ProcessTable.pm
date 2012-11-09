@@ -4,6 +4,7 @@ use 5.006;
 
 use strict;
 use Carp;
+use Fcntl;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK $AUTOLOAD);
 
 require Exporter;
@@ -109,7 +110,12 @@ sub initialize
         $self->_get_tty_list;
         my $old_umask = umask;
         umask 022;
-        Storable::store(\%Proc::ProcessTable::TTYDEVS, $TTYDEVSFILE);
+
+        sysopen( my $ttydevs_fh, $TTYDEVSFILE, O_WRONLY | O_EXCL | O_CREAT )
+          or die "$TTYDEVSFILE was created by other process";
+        Storable::store_fd( \%Proc::ProcessTable::TTYDEVS, $ttydevs_fh );
+        close $ttydevs_fh;
+
         umask $old_umask;
       }
     }
