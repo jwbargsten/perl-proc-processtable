@@ -8,14 +8,22 @@ struct procstat* get_procstat( char* path, struct procstat* prs){
 
   if( (fp = fopen( path, "r" )) != NULL ){ 
     fscanf(fp, 
+#ifdef PROCFS_FREEBSD_6
+	   "%s %d %d %d %d %s %s %d,%d %d,%d %d,%d %s %d %d %d,%d,%s",
+#else
 	   "%s %d %d %d %d %d,%d %s %d,%d %d,%d %d,%d %s %d %d %d,%d,%s",
+#endif
 	   &prs->comm, 
 	   &prs->pid, 
 	   &prs->ppid,
 	   &prs->pgid,
 	   &prs->sid, 
+#ifdef PROCFS_FREEBSD_6
+	   &prs->ttydev,
+#else
 	   &prs->tdev_maj, 
 	   &prs->tdev_min, 
+#endif
 	   &prs->flags, 
 	   &prs->start,
 	   &prs->start_mic,
@@ -93,20 +101,33 @@ void OS_get_table(){
 	double start_f;
 	char *ttydev;
 	int ttynum;
+#ifdef PROCFS_FREEBSD_6
+	struct stat tdev_stat;
+#endif
 
-	utime_f = prs.utime + prs.utime_mic/1000000;
-	stime_f = prs.stime + prs.stime_mic/1000000;
+	utime_f = prs.utime + prs.utime_mic/1000000.0;
+	stime_f = prs.stime + prs.stime_mic/1000000.0;
 	time_f  = utime_f + stime_f;
-	start_f = prs.start + prs.start_mic/1000000;
+	start_f = prs.start + prs.start_mic/1000000.0;
 
 	sprintf(utime, "%f", utime_f);
 	sprintf(stime, "%f", stime_f);
 	sprintf(time, "%f", time_f);
 	sprintf(start, "%f", start_f);
 
+#ifdef PROCFS_FREEBSD_6
+	ttydev = prs.ttydev;
+	sprintf(pathbuf, "/dev/%s", ttydev);
+	if (stat(pathbuf, &tdev_stat) < 0){
+	  ttynum = -1;
+	} else {
+	  ttynum = tdev_stat.st_rdev;
+	}
+#else
 	ttynum = makedev(prs.tdev_maj, prs.tdev_min);
 	ttydev = devname(ttynum, S_IFCHR);
 	if (ttydev == NULL) ttydev = "??";
+#endif
 
 	/* get stuff out of /proc/PROC_ID/cmdline */
 	sprintf(pathbuf, "%s%s%s", "/proc/", procdirp->d_name, "/cmdline");

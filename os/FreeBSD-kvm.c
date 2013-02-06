@@ -2,8 +2,11 @@
 #include <unistd.h>
 #include <sys/sysctl.h>
 #include <sys/proc.h>
+#include <sys/times.h>
 #include <sys/user.h>                                                          
+#include <fcntl.h>
 #include <kvm.h>
+#include <paths.h>
 
 
 
@@ -24,6 +27,8 @@ void OS_get_table(){
   char state[20];
   char start[20];
   char time[20];
+  char utime[20];
+  char stime[20];
   char flag[20];
   char sflag[20];
 
@@ -32,7 +37,7 @@ void OS_get_table(){
   int priority;
 
   /* Open the kvm interface, get a descriptor */
-  if ((kd = kvm_open(NULL, NULL, NULL, 0, errbuf)) == NULL) {
+  if ((kd = kvm_openfiles(_PATH_DEVNULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf)) == NULL) {
      fprintf(stderr, "kvm_open: %s\n", errbuf);
      ppt_croak("kvm_open: ", errbuf);
   }  
@@ -92,8 +97,10 @@ void OS_get_table(){
      }
 
 
-     sprintf(start, "%d.%d", procs[i].ki_start.tv_sec, procs[i].ki_start.tv_usec);
+     sprintf(start, "%d.%06d", procs[i].ki_start.tv_sec, procs[i].ki_start.tv_usec);
      sprintf(time, "%.6f", procs[i].ki_runtime/1000000.0);
+     sprintf(utime, "%d.%06d", procs[i].ki_rusage.ru_utime.tv_sec, procs[i].ki_rusage.ru_utime.tv_usec);
+     sprintf(stime, "%d.%06d", procs[i].ki_rusage.ru_stime.tv_sec, procs[i].ki_rusage.ru_stime.tv_usec);
      sprintf(flag, "0x%04x", procs[i].ki_flag);
      sprintf(sflag, "0x%04x", procs[i].ki_sflag);
 
@@ -113,6 +120,8 @@ void OS_get_table(){
 
                       start, 
                       time,
+		      utime,
+		      stime,
 
                       procs[i].ki_wmesg,
                       state,
