@@ -11,14 +11,25 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if __FreeBSD_version >= 600000
+/* in FreeBSD 6.x the format of /proc/$pid/status changed */
+#define PROCFS_FREEBSD_6
+#else
+#undef  PROCFS_FREEBSD_6
+#endif
+
 struct procstat {
   char comm[MAXCOMLEN+1];
   int pid;
   int ppid;
   int pgid;
   int sid;
+#ifdef PROCFS_FREEBSD_6
+  char ttydev[SPECNAMELEN];
+#else
   int tdev_maj;
   int tdev_min;
+#endif
   char flags[256]; /* XXX */
   int start;
   int start_mic;
@@ -102,3 +113,4 @@ static char* Fields[] = {
   
 #define F_LASTFIELD 19
 };
+

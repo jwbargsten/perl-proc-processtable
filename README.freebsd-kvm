@@ -12,6 +12,8 @@ SUPPORTED ATTRIBUTES
   sflags       PS_* flags
   start        start time
   time         running time (in seconds)
+  utime        user time (in seconds)
+  stime        system time (in seconds)
   wchan        current system call
   state        state of process
 
@@ -36,8 +38,6 @@ its use is not recommended in future. In addition, mapping processes space
 to /proc is not correct (at least, in 7 of 7 my freebsd servers with
 FreeBSD5 installed).
 
-So, I decided to write this code. This module works via kvm system, all its
-need is access to /dev/mem and /dev/kmem (you can add user to kmem group
-in /etc/groups file).
+So, I decided to write this code. This module works via the kvm system.
 
 Any comments please send to king2@kaluga.ru.
