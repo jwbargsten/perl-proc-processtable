@@ -28,3 +28,4 @@ MYMETA.*
 ^OS.c
 ^*.c
 ^*.o
+^*.patch

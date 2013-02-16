@@ -18,3 +18,4 @@ htdocs
 release
 tmp
 z-backup
+*.patch

@@ -24,4 +24,9 @@ WriteMakefile(
     'clean'     => { FILES => 'OS.c' },
     'dist' => { COMPRESS=>"gzip", SUFFIX=>"gz" },
     'test' => { 'TESTS' => 't/*.t' },
+    'META_MERGE' => {
+         resources => {
+             repository  =>  'https://github.com/jwbargsten/perl-proc-processtable',
+         },
+    },
 );
