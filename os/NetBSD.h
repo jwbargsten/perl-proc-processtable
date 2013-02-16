@@ -1,6 +1,11 @@
 #include <sys/types.h>
 #include <sys/param.h>
+#if defined(__NetBSD__) && __NetBSD_Version__ > 299000900
+#include <sys/statvfs.h>
+#define statfs statvfs
+#else
 #include <sys/mount.h>
+#endif
 #include <sys/stat.h>
 #include <ctype.h>
 #include <dirent.h>
