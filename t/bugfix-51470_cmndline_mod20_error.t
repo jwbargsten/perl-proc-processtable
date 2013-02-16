@@ -18,7 +18,7 @@ if ( $pid == 0 ) {
   sleep 1;
   my $t = Proc::ProcessTable->new;
   my ($p) = grep { $_->{pid} == $pid } @{ $t->table };
-  is( $p->{cmndline}, '01234567890123456789', "modulo 20 commandline bugfix" );
+  like( $p->{cmndline}, qr/01234567890123456789/, "modulo 20 commandline bugfix" );
   kill 9, $pid;
   done_testing();
 }
