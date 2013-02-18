@@ -208,8 +208,11 @@ OS_get_table()
 	pstate = "ttyin";
       else if (p->process_state & PID_TTYOU)
 	pstate = "ttyout";
-
+#ifdef PID_ORPHANED
       if (p->process_state & (PID_ORPHANED | PID_EXITED))
+#else
+      if (p->process_state & PID_EXITED)
+#endif
         strcpy (pname, "<defunct>");
       else if (p->ppid)
 	{
