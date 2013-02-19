@@ -124,7 +124,7 @@ void OS_get_table() {
 		}
 
 		/* arguments */
-		cmndline[0] = NULL;
+		cmndline[0] = '\0';
 		pargv = kvm_getargv(kd, (const struct kinfo_proc *) &(procs[i]), 0);
 		if (pargv) {
 			argcount = 0;
