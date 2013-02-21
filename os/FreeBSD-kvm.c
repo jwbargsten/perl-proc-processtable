@@ -43,7 +43,7 @@ void OS_get_table(){
   }  
 
   /* Get the list of processes. */
-  if ((procs = kvm_getprocs(kd, KERN_PROC_ALL, 0, &count)) == NULL) {
+  if ((procs = kvm_getprocs(kd, KERN_PROC_PROC, 0, &count)) == NULL) {
      kvm_close(kd);
      fprintf(stderr, "kvm_getprocs: %s\n", kvm_geterr(kd));
      ppt_croak("kvm_getprocs: ", kvm_geterr(kd));
