@@ -29,12 +29,17 @@ void OS_get_table(){
   char time[20];
   char utime[20];
   char stime[20];
+  char ctime[20];
+  char cutime[20];
+  char cstime[20];
   char flag[20];
   char sflag[20];
 
   static char format[128];
   char cmndline[ARG_MAX];
   int priority;
+
+  int pagesize;
 
   /* Open the kvm interface, get a descriptor */
   if ((kd = kvm_openfiles(_PATH_DEVNULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf)) == NULL) {
@@ -48,6 +53,8 @@ void OS_get_table(){
      fprintf(stderr, "kvm_getprocs: %s\n", kvm_geterr(kd));
      ppt_croak("kvm_getprocs: ", kvm_geterr(kd));
   }
+
+  pagesize = getpagesize();
 
   /* Iterate through the processes in kinfo_proc, sending proc info */
   /* to bless_into_proc for each proc */
@@ -101,6 +108,9 @@ void OS_get_table(){
      sprintf(time, "%.6f", procs[i].ki_runtime/1000000.0);
      sprintf(utime, "%d.%06d", procs[i].ki_rusage.ru_utime.tv_sec, procs[i].ki_rusage.ru_utime.tv_usec);
      sprintf(stime, "%d.%06d", procs[i].ki_rusage.ru_stime.tv_sec, procs[i].ki_rusage.ru_stime.tv_usec);
+     sprintf(ctime, "%d.%06d", procs[i].ki_childtime.tv_sec, procs[i].ki_childtime.tv_usec);
+     sprintf(cutime, "%d.%06d", procs[i].ki_rusage_ch.ru_utime.tv_sec, procs[i].ki_rusage_ch.ru_utime.tv_usec);
+     sprintf(cstime, "%d.%06d", procs[i].ki_rusage_ch.ru_stime.tv_sec, procs[i].ki_rusage_ch.ru_stime.tv_usec);
      sprintf(flag, "0x%04x", procs[i].ki_flag);
      sprintf(sflag, "0x%04x", procs[i].ki_sflag);
 
@@ -118,10 +128,14 @@ void OS_get_table(){
                       flag,
                       sflag,
 
-                      start, 
+                      start,
+ 
                       time,
 		      utime,
 		      stime,
+                      ctime,
+		      cutime,
+		      cstime,
 
                       procs[i].ki_wmesg,
                       state,
@@ -136,10 +150,20 @@ void OS_get_table(){
                       procs[i].ki_nice,
 
                       procs[i].ki_size,              // virtual size
+                      procs[i].ki_size,              // alias
                       procs[i].ki_rssize,              // current resident set size in pages
+                      procs[i].ki_rssize*pagesize,     // rss in bytes
                       procs[i].ki_tsize,               // text size (pages) XXX
                       procs[i].ki_dsize,               // data size (pages) XXX
-                      procs[i].ki_ssize               // stack size (pages)   
+                      procs[i].ki_ssize,               // stack size (pages)   
+
+		      procs[i].ki_rusage.ru_majflt,
+		      procs[i].ki_rusage.ru_minflt,
+		      procs[i].ki_rusage_ch.ru_majflt, // XXX - most fields in ki_rusage_ch are not (yet) filled in
+		      procs[i].ki_rusage_ch.ru_minflt, // XXX - most fields in ki_rusage_ch are not (yet) filled in
+
+		      procs[i].ki_numthreads,
+		      procs[i].ki_oncpu
               );
 
 
