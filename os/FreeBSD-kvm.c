@@ -1,3 +1,10 @@
+/* perl's struct cv conflicts with the definition in sys/condvar.h (included by sys/proc.h) */
+#define cv perl_cv
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
+#undef cv
+
 #include "os/FreeBSD-kvm.h"
 #include <unistd.h>
 #include <sys/sysctl.h>
@@ -21,7 +28,7 @@ void OS_get_table(){
   char errbuf[2048];
   struct kinfo_proc *procs;          /* array of processes */
   int count;                         /* returns number of processes */
-  int i;
+  int i, j;
   char ** argv;
 
   char state[20];
@@ -40,6 +47,9 @@ void OS_get_table(){
   int priority;
 
   int pagesize;
+
+  AV *group_array;
+  SV *group_ref;
 
   /* Open the kvm interface, get a descriptor */
   if ((kd = kvm_openfiles(_PATH_DEVNULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf)) == NULL) {
@@ -114,6 +124,13 @@ void OS_get_table(){
      sprintf(flag, "0x%04x", procs[i].ki_flag);
      sprintf(sflag, "0x%04x", procs[i].ki_sflag);
 
+     /* create groups array */
+     group_array = newAV();
+     for (j = 0; j < procs[i].ki_ngroups; j++) {
+	 av_push(group_array, newSViv(procs[i].ki_groups[j]));
+     }
+     group_ref = newRV_noinc((SV *) group_array);
+
      bless_into_proc( format,
                       Fields,
 
@@ -163,7 +180,9 @@ void OS_get_table(){
 		      procs[i].ki_rusage_ch.ru_minflt, // XXX - most fields in ki_rusage_ch are not (yet) filled in
 
 		      procs[i].ki_numthreads,
-		      procs[i].ki_oncpu
+		      procs[i].ki_oncpu,
+
+		      group_ref
               );
 
 
