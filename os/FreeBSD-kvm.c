@@ -50,6 +50,7 @@ void OS_get_table(){
 
   AV *group_array;
   SV *group_ref;
+  SV *oncpu;
 
   /* Open the kvm interface, get a descriptor */
   if ((kd = kvm_openfiles(_PATH_DEVNULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf)) == NULL) {
@@ -131,6 +132,8 @@ void OS_get_table(){
      }
      group_ref = newRV_noinc((SV *) group_array);
 
+     oncpu = procs[i].ki_oncpu == 0xff ? &PL_sv_undef : newSViv(procs[i].ki_oncpu);
+
      bless_into_proc( format,
                       Fields,
 
@@ -180,7 +183,7 @@ void OS_get_table(){
 		      procs[i].ki_rusage_ch.ru_minflt, // XXX - most fields in ki_rusage_ch are not (yet) filled in
 
 		      procs[i].ki_numthreads,
-		      procs[i].ki_oncpu,
+		      oncpu,
 
 		      group_ref
               );
