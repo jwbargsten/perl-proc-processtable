@@ -1,3 +1,10 @@
+/* perl's struct cv conflicts with the definition in sys/condvar.h (included by sys/proc.h) */
+#define cv perl_cv
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
+#undef cv
+
 #include "os/FreeBSD-kvm.h"
 #include <unistd.h>
 #include <sys/sysctl.h>
@@ -21,7 +28,7 @@ void OS_get_table(){
   char errbuf[2048];
   struct kinfo_proc *procs;          /* array of processes */
   int count;                         /* returns number of processes */
-  int i;
+  int i, j;
   char ** argv;
 
   char state[20];
@@ -29,12 +36,21 @@ void OS_get_table(){
   char time[20];
   char utime[20];
   char stime[20];
+  char ctime[20];
+  char cutime[20];
+  char cstime[20];
   char flag[20];
   char sflag[20];
 
   static char format[128];
   char cmndline[ARG_MAX];
   int priority;
+
+  int pagesize;
+
+  AV *group_array;
+  SV *group_ref;
+  SV *oncpu;
 
   /* Open the kvm interface, get a descriptor */
   if ((kd = kvm_openfiles(_PATH_DEVNULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf)) == NULL) {
@@ -43,11 +59,13 @@ void OS_get_table(){
   }  
 
   /* Get the list of processes. */
-  if ((procs = kvm_getprocs(kd, KERN_PROC_ALL, 0, &count)) == NULL) {
+  if ((procs = kvm_getprocs(kd, KERN_PROC_PROC, 0, &count)) == NULL) {
      kvm_close(kd);
      fprintf(stderr, "kvm_getprocs: %s\n", kvm_geterr(kd));
      ppt_croak("kvm_getprocs: ", kvm_geterr(kd));
   }
+
+  pagesize = getpagesize();
 
   /* Iterate through the processes in kinfo_proc, sending proc info */
   /* to bless_into_proc for each proc */
@@ -101,8 +119,20 @@ void OS_get_table(){
      sprintf(time, "%.6f", procs[i].ki_runtime/1000000.0);
      sprintf(utime, "%d.%06d", procs[i].ki_rusage.ru_utime.tv_sec, procs[i].ki_rusage.ru_utime.tv_usec);
      sprintf(stime, "%d.%06d", procs[i].ki_rusage.ru_stime.tv_sec, procs[i].ki_rusage.ru_stime.tv_usec);
+     sprintf(ctime, "%d.%06d", procs[i].ki_childtime.tv_sec, procs[i].ki_childtime.tv_usec);
+     sprintf(cutime, "%d.%06d", procs[i].ki_rusage_ch.ru_utime.tv_sec, procs[i].ki_rusage_ch.ru_utime.tv_usec);
+     sprintf(cstime, "%d.%06d", procs[i].ki_rusage_ch.ru_stime.tv_sec, procs[i].ki_rusage_ch.ru_stime.tv_usec);
      sprintf(flag, "0x%04x", procs[i].ki_flag);
      sprintf(sflag, "0x%04x", procs[i].ki_sflag);
+
+     /* create groups array */
+     group_array = newAV();
+     for (j = 0; j < procs[i].ki_ngroups; j++) {
+	 av_push(group_array, newSViv(procs[i].ki_groups[j]));
+     }
+     group_ref = newRV_noinc((SV *) group_array);
+
+     oncpu = procs[i].ki_oncpu == 0xff ? &PL_sv_undef : newSViv(procs[i].ki_oncpu);
 
      bless_into_proc( format,
                       Fields,
@@ -118,10 +148,14 @@ void OS_get_table(){
                       flag,
                       sflag,
 
-                      start, 
+                      start,
+ 
                       time,
 		      utime,
 		      stime,
+                      ctime,
+		      cutime,
+		      cstime,
 
                       procs[i].ki_wmesg,
                       state,
@@ -136,10 +170,22 @@ void OS_get_table(){
                       procs[i].ki_nice,
 
                       procs[i].ki_size,              // virtual size
+                      procs[i].ki_size,              // alias
                       procs[i].ki_rssize,              // current resident set size in pages
+                      procs[i].ki_rssize*pagesize,     // rss in bytes
                       procs[i].ki_tsize,               // text size (pages) XXX
                       procs[i].ki_dsize,               // data size (pages) XXX
-                      procs[i].ki_ssize               // stack size (pages)   
+                      procs[i].ki_ssize,               // stack size (pages)   
+
+		      procs[i].ki_rusage.ru_majflt,
+		      procs[i].ki_rusage.ru_minflt,
+		      procs[i].ki_rusage_ch.ru_majflt, // XXX - most fields in ki_rusage_ch are not (yet) filled in
+		      procs[i].ki_rusage_ch.ru_minflt, // XXX - most fields in ki_rusage_ch are not (yet) filled in
+
+		      procs[i].ki_numthreads,
+		      oncpu,
+
+		      group_ref
               );
 
 
