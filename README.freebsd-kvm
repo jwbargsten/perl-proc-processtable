@@ -5,6 +5,7 @@ SUPPORTED ATTRIBUTES
   uid          UID
   euid         effective UID
   gid          GID
+  groups       array of group ids
   pgrp         process GID
   sess         process session ID
 
@@ -14,6 +15,9 @@ SUPPORTED ATTRIBUTES
   time         running time (in seconds)
   utime        user time (in seconds)
   stime        system time (in seconds)
+  ctime        running child time (in seconds)
+  cutime       child user time (in seconds)
+  cstime       child system time (in seconds)
   wchan        current system call
   state        state of process
 
@@ -23,11 +27,21 @@ SUPPORTED ATTRIBUTES
   cmndline     full command line of process
   priority     user priority of process
   nice         nice value of process
-  vmsize       virtual size
+  vmsize       virtual size (bytes)
+  size         alias for vmsize
   rssize       current resident set size in pages
+  rss          current resident set size in bytes
   tsize        text size (pages) XXX
   dsize        data size (pages) XXX
   ssize        stack size (pages)
+
+  minflt       minor page faults              
+  cminflt      child minor page faults        
+  majflt       major page faults              
+  cmajflt      child major page faults        
+
+  numthr       number of threads in total
+  onpro        which cpu process in on (starting from 0), or undef
 
 
 COMMENT
