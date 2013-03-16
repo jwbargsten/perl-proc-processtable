@@ -533,10 +533,14 @@ skip_state_format:
  */
 static void calc_prec(char *format_str, struct procstat *prs, struct obstack *mem_pool)
 {
+    int len;
+    /* calculate pctcpu - NOTE: This assumes the cpu time is in microsecond units! */
     float pctcpu = 100.0f * (prs->utime / 1e6) / (time(NULL) - prs->start_time);
 
-    /* calculate pctcpu - NOTE: This assumes the cpu time is in microsecond units! */
-    sprintf(prs->pctcpu, "%3.2f", pctcpu);
+    len = snprintf(prs->pctcpu, LENGTH_PCTCPU, "%6.2f", pctcpu);
+    if( len >= LENGTH_PCTCPU ) {  ppt_warn("percent cpu truncated from %d, set LENGTH_PCTCPU to at least: %d)", len, len + 1); }
+
+
     field_enable(format_str, F_PCTCPU);
 
     /* calculate pctmem */
