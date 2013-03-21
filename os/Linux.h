@@ -1,4 +1,4 @@
-
+#define LENGTH_PCTCPU 10  /* Maximum percent cpu sufficient to hold 100000.00 or up to 1000 cpus  */
 /* Proc::ProcessTable functions */
 void ppt_warn(const char*, ...);
 void bless_into_proc(char* , char**, ...);
@@ -42,7 +42,7 @@ struct procstat
 	char			*cmndline;
 	char			*exec;
 	/* other values */
-	char			pctcpu[sizeof("100.00")];	/* precent cpu, without '%' char */
+	char			pctcpu[LENGTH_PCTCPU];	/* precent cpu, without '%' char */
 	char			pctmem[sizeof("100.00")];	/* precent memory, without '%' char */
 };
 

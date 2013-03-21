@@ -510,8 +510,9 @@ static void fixup_stat_values(char *format_str, struct procstat* prs)
 skip_state_format:
 
     prs->start_time = (prs->start_time / system_hertz) + boot_time;
-
+    
     /* fix time */
+
     prs->stime      = JIFFIES_TO_MICROSECONDS(prs->stime); 
     prs->utime      = JIFFIES_TO_MICROSECONDS(prs->utime);
     prs->cstime     = JIFFIES_TO_MICROSECONDS(prs->cstime); 
@@ -533,10 +534,17 @@ skip_state_format:
  */
 static void calc_prec(char *format_str, struct procstat *prs, struct obstack *mem_pool)
 {
-    float pctcpu = 100.0f * (prs->utime / 1e6) / (time(NULL) - prs->start_time);
+    int len;
+    /* calculate pctcpu - NOTE: This assumes the cpu time is in microsecond units!
+       multiplying by 1/1e6 puts all units back in seconds.  Then multiply by 100.0f to get a percentage.
+    */
 
-    /* calculate pctcpu - NOTE: This assumes the cpu time is in microsecond units! */
-    sprintf(prs->pctcpu, "%3.2f", pctcpu);
+    float pctcpu = ( 100.0f * (prs->utime + prs->stime ) * 1/1e6 ) / (time(NULL) - prs->start_time);
+
+    len = snprintf(prs->pctcpu, LENGTH_PCTCPU, "%6.2f", pctcpu);
+    if( len >= LENGTH_PCTCPU ) {  ppt_warn("percent cpu truncated from %d, set LENGTH_PCTCPU to at least: %d)", len, len + 1); }
+
+
     field_enable(format_str, F_PCTCPU);
 
     /* calculate pctmem */
