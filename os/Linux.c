@@ -482,7 +482,7 @@ static void fixup_stat_values(char *format_str, struct procstat* prs)
             prs->state = get_string(SLEEP);
             break;
         case 'W':
-            prs->state = get_string(WAIT);
+            prs->state = get_string(WAIT); /*Waking state.  Could be mapped to WAKING, but would break backward compatibility */
             break;
         case 'R':
             prs->state = get_string(RUN);
@@ -497,7 +497,19 @@ static void fixup_stat_values(char *format_str, struct procstat* prs)
             prs->state = get_string(UWAIT);
             break;
         case 'T':
-            prs->state = get_string(STOP);
+            prs->state = get_string(STOP); 
+            break;
+        case 'x':
+            prs->state = get_string(DEAD);
+            break;
+        case 'X':
+            prs->state = get_string(DEAD);
+            break;
+        case 'K':
+            prs->state = get_string(WAKEKILL);
+            break;
+        case 't':
+            prs->state = get_string(TRACINGSTOP);
             break;
         /* unknown state, state is already set to NULL */
         default:
