@@ -5,6 +5,7 @@ use 5.006;
 use strict;
 use Carp;
 use Fcntl;
+use Config;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK $AUTOLOAD);
 
 require Exporter;
@@ -17,7 +18,7 @@ require DynaLoader;
 @EXPORT = qw(
     
 );
-$VERSION = '0.46';
+$VERSION = '0.47';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -47,7 +48,8 @@ use Proc::ProcessTable::Process;
 use File::Find;
 
 my %TTYDEVS;
-our $TTYDEVSFILE = "/tmp/TTYDEVS"; # Where we store the TTYDEVS hash
+
+our $TTYDEVSFILE = "/tmp/TTYDEVS_" . $Config{byteorder}; # Where we store the TTYDEVS hash
 
 sub new 
 {
@@ -193,8 +195,10 @@ is overriden to be false.
 
 cache_ttys -- causes the constructor to look for and use a file that
 caches a mapping of tty names to device numbers, and to create the
-file if it doesn't exist (this file is /tmp/TTYDEVS by default). This
-feature requires the Storable module.
+file if it doesn't exist. This feature requires the Storable module.
+By default, the cache file name consists of a prefix F</tmp/TTYDEVS_> and a
+byte order tag. The file name can be accessed (and changed) via
+C<$Proc::ProcessTable::TTYDEVSFILE>.
 
 =item fields
 
@@ -244,7 +248,6 @@ are supported directly by internal perl functions.
     print $f, ":  ", $p->{$f}, "\n";
   }
  }              
-
 
 =head1 CAVEATS
 

@@ -7,8 +7,8 @@ Killfam.pm
 ProcessTable.xs
 README
 README.aix
-README.freebsd
 README.freebsd-kvm
+README.freebsd-procfs
 README.linux
 README.solaris
 README.dec_osf
@@ -30,7 +30,6 @@ hints/aix_4_3.pl
 hints/aix_5.pl
 hints/hpux.pl
 hints/freebsd.pl
-hints/freebsd_5.pl
 hints/irix.pl
 hints/dec_osf.pl
 hints/bsdi.pl

@@ -2,7 +2,14 @@ use warnings;
 use Test::More;
 use Data::Dumper;
 
-BEGIN { use_ok('Proc::ProcessTable'); }
+BEGIN { 
+  if( $^O eq 'cygwin' ) {
+      plan skip_all => 'Test irrelevant on cygwin';
+  }
+
+  use_ok('Proc::ProcessTable'); 
+}
+
 
 $SIG{CHLD} = 'IGNORE';
 
@@ -18,8 +25,8 @@ if ( $pid == 0 ) {
   sleep 1;
   my $t = Proc::ProcessTable->new;
   my ($p) = grep { $_->{pid} == $pid } @{ $t->table };
-  is( $p->{cmndline}, '01234567890123456789', "modulo 20 commandline bugfix" );
+  like( $p->{cmndline}, qr/01234567890123456789/, "modulo 20 commandline bugfix" );
   kill 9, $pid;
-  done_testing();
 }
+done_testing();
 

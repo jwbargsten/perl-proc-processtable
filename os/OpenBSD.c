@@ -68,7 +68,7 @@ char* OS_initialize() {
 void OS_get_table() {
 	kvm_t *kd;
 	char errbuf[_POSIX2_LINE_MAX];
-	struct kinfo_proc2 *procs;
+	struct kinfo_proc *procs;
 	int count;
 	int i, argcount;
 	int ttynum;
@@ -87,9 +87,9 @@ void OS_get_table() {
 	}
 
 	/* get processes */
-	if ((procs = kvm_getproc2(kd, KERN_PROC_ALL, 0, sizeof(*procs), &count)) == NULL) {
+	if ((procs = kvm_getprocs(kd, KERN_PROC_ALL, 0, sizeof(*procs), &count)) == NULL) {
 		kvm_close(kd);
-		ppt_croak("kvm_getproc2: %s", kvm_geterr(kd));
+		ppt_croak("kvm_getprocs: %s", kvm_geterr(kd));
 	}
 
 	/* bless_into_proc each process's information */
@@ -124,8 +124,8 @@ void OS_get_table() {
 		}
 
 		/* arguments */
-		cmndline[0] = NULL;
-		pargv = kvm_getargv2(kd, (const struct kinfo_proc2 *) &(procs[i]), 0);
+		cmndline[0] = '\0';
+		pargv = kvm_getargv(kd, (const struct kinfo_proc *) &(procs[i]), 0);
 		if (pargv) {
 			argcount = 0;
 			while (pargv[argcount] && strlen(cmndline) <= ARG_MAX) {
