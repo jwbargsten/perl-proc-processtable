@@ -56,6 +56,9 @@ enum state
 	DEFUNCT,
 	STOP,
 	UWAIT,
+    DEAD,
+    WAKEKILL,
+    TRACINGSTOP
 };
 
 
@@ -64,7 +67,16 @@ enum state
 static const char strings[] =
 {
 /* process state */
-	"sleep\0" "wait\0" "run\0" "idle\0" "defunct\0" "stop\0" "uwait\0"
+	"sleep\0" 
+    "wait\0" 
+    "run\0" 
+    "idle\0" 
+    "defunct\0" 
+    "stop\0"
+    "uwait\0"
+    "dead\0"
+    "wakekill\0"
+    "tracingstop\0"
 /* error messages */
 	"/proc unavailable\0"
 	"intilization failed\0"
@@ -109,62 +121,74 @@ static const char strings[] =
 	"IIISIIIILLLLLJJJJIJLLLJJSIIIIIISSSSS\0"
 };
 
+
+static const size_t strings_index[] =
+{
 /* I generated this array with a perl script processing the above char array,
  * and then performed cross string optimization (by hand) for: 
  *		pid,	time,	uid,	gid,	minflt,		majflt,
  */
-static const size_t strings_index[] =
-{
 /* process status strings */
-	0, 6, 11, 15, 20, 28, 33,
+     0,
+     6,
+     11,
+     15,
+     20,
+     28,
+     33,
+     39,
+     44,
+     53,
 /* error messages */
-	39,	57,
+     65,
+     83,
 /* fields */
-	77,
-	81,
-	85,
-	89,
-	95,
-	100,
-	105,
-	110,
-	117,
-	123,
-	130,
-	138,
-	145,
-	153,
-	159,
-	165,
-	172,
-	179,
-	188,
-	194,
-	199,
-	203,
-	209,
-	214,
-	220,
-	226,
-	231,
-	236,
-	241,
-	246,
-	251,
-	256,
-	263,
-	270,
-	279,
-	284,
+     103,
+     107,
+     111,
+     115,
+     121,
+     126,
+     131,
+     136,
+     143,
+     149,
+     156,
+     164,
+     171,
+     179,
+     185,
+     191,
+     198,
+     205,
+     214,
+     220,
+     225,
+     229,
+     235,
+     240,
+     246,
+     252,
+     257,
+     262,
+     267,
+     272,
+     277,
+     282,
+     289,
+     296,
+     305,
+     310,
 /* default format string (pre lower casing) */
-	288
+     314,
 };
 
+
 enum string_name {
-	/* NOTE: we start this enum at 7, so we can use still keep using the
+	/* NOTE: we start this enum at 10, so we can use still keep using the
   	 * state enum, and have those correspond to the static strings */
 /* error messages */
-	STR_ERR_PROC_STATFS = 7,
+	STR_ERR_PROC_STATFS = 10,
 	STR_ERR_INIT,
 /* fields */
 	STR_FIELD_UID,
@@ -248,43 +272,45 @@ enum field
 	F_CWD
 };
 
+
+
 static const char* const field_names[] =
 {
-	strings + 77,
-	strings + 81,
-	strings + 85,
-	strings + 89,
-	strings + 95,
-	strings + 100,
-	strings + 105,
-	strings + 110,
-	strings + 117,
-	strings + 123,
-	strings + 130,
-	strings + 138,
-	strings + 145,
-	strings + 153,
-	strings + 159,
-	strings + 165,
-	strings + 172,
-	strings + 179,
-	strings + 188,
-	strings + 194,
-	strings + 199,
-	strings + 203,
-	strings + 209,
-	strings + 214,
-	strings + 220,
-	strings + 226,
-	strings + 231,
-	strings + 236,
-	strings + 241,
-	strings + 246,
-	strings + 251,
-	strings + 256,
-	strings + 263,
-	strings + 270,
-	strings + 279,
-	strings + 284
+     strings + 103,
+     strings + 107,
+     strings + 111,
+     strings + 115,
+     strings + 121,
+     strings + 126,
+     strings + 131,
+     strings + 136,
+     strings + 143,
+     strings + 149,
+     strings + 156,
+     strings + 164,
+     strings + 171,
+     strings + 179,
+     strings + 185,
+     strings + 191,
+     strings + 198,
+     strings + 205,
+     strings + 214,
+     strings + 220,
+     strings + 225,
+     strings + 229,
+     strings + 235,
+     strings + 240,
+     strings + 246,
+     strings + 252,
+     strings + 257,
+     strings + 262,
+     strings + 267,
+     strings + 272,
+     strings + 277,
+     strings + 282,
+     strings + 289,
+     strings + 296,
+     strings + 305,
+     strings + 310,
 };
 
