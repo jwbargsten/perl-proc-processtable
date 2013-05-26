@@ -75,4 +75,5 @@ README.darwin
 os/darwin.c
 os/darwin.h
 hints/darwin.pl
+hints/midnightbsd.pl
 META.yml                                 Module meta-data (added by MakeMaker)

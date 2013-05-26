@@ -306,4 +306,11 @@ Revision history for Perl extension Proc::ProcessTable.
 
 0.48
   -Pulled commits from Chris Williams <chris@bingosnet.co.uk>, fixes build
-  errors on NetBSD and OpenBSD.
+  errors on NetBSD and OpenBSD. Fixed #72862 (byte order tag in cache file), 
+  applied patch to fix #67224 (cygwin PID_ORPHANED) by <rurban at x-ray.at>.
+  Pulled FreeBSD patches from Slaven Rezić <SREZIC@cpan.org>; 
+  Pulled from David Zaebst <zaebst@gmail.com>): Fixes to stay accurate on
+  machines with many cpus (#82175), to include system time into calculations
+  (#80391) and others (#81312, #82175 and #80391) and to fix unknown process
+  states for debian kernels #71976. Tried to get it compiling under
+  MidnightBSD.
