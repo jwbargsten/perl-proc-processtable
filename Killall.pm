@@ -91,7 +91,7 @@ C<Proc::ProcessTable> is used).
 
 C<killall> searches the process table and sends that signal to all processes
 which match the pattern. The return value is the number of processes that
-were succesfully signaled. If any kills failed, the C<$!> variable
+were successfully signaled. If any kills failed, the C<$!> variable
 will be set based on that last one that failed (even if a successful kill
 happened afterward).
 

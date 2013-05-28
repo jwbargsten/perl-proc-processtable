@@ -191,7 +191,7 @@ thus preventing the module from traversing the device tree, which on some
 systems, can be quite large and/or contain invalid device paths (for example,
 Solaris does not clean up invalid device entries when disks are swapped).  If
 this is specified with cache_ttys, a warning is generated and the cache_ttys
-is overriden to be false.
+is overridden to be false.
 
 cache_ttys -- causes the constructor to look for and use a file that
 caches a mapping of tty names to device numbers, and to create the
