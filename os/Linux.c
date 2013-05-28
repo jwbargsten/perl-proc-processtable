@@ -314,7 +314,7 @@ static bool get_proc_stat(char *pid, char *format_str, struct procstat* prs,
     /* replace the first ')' with a '\0', the contents look like this:
      *    pid (program_name) state ...
      * if we don't find ')' then it's incorrectly formated */
-    if ((paren = strchr(stat_text, ')')) == NULL) {
+    if ((paren = strrchr(stat_text, ')')) == NULL) {
         read_ok = false;
         goto done;
     }
