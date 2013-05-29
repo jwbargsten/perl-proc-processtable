@@ -54,14 +54,14 @@ void OS_get_table(){
 
   /* Open the kvm interface, get a descriptor */
   if ((kd = kvm_openfiles(_PATH_DEVNULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf)) == NULL) {
-     fprintf(stderr, "kvm_open: %s\n", errbuf);
+     /*fprintf(stderr, "kvm_open: %s\n", errbuf);*/
      ppt_croak("kvm_open: ", errbuf);
   }  
 
   /* Get the list of processes. */
   if ((procs = kvm_getprocs(kd, KERN_PROC_PROC, 0, &count)) == NULL) {
      kvm_close(kd);
-     fprintf(stderr, "kvm_getprocs: %s\n", kvm_geterr(kd));
+     /*fprintf(stderr, "kvm_getprocs: %s\n", kvm_geterr(kd));*/
      ppt_croak("kvm_getprocs: ", kvm_geterr(kd));
   }
 
