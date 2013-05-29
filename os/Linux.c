@@ -394,7 +394,7 @@ static void eval_link(char *pid, char *link_rel, enum field field, char **ptr,
 
     /* copy the path onto our obstack, set the value (somewhere in pts)
      * and free the results of canonicalize_file_name */
-    obstack_printf(mem_pool, link);
+    obstack_printf(mem_pool, "%s", link);
     obstack_1grow(mem_pool, '\0');
 
     *ptr = (char *) obstack_finish(mem_pool);
@@ -635,7 +635,7 @@ void OS_get_table()
         bzero(prs, sizeof(struct procstat));
 
         /* intilize the format string */
-        obstack_printf(&mem_pool, get_string(STR_DEFAULT_FORMAT));
+        obstack_printf(&mem_pool, "%s", get_string(STR_DEFAULT_FORMAT));
         obstack_1grow(&mem_pool, '\0');
         format_str = (char *) obstack_finish(&mem_pool);
 

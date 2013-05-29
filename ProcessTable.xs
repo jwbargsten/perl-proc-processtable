@@ -402,5 +402,5 @@ _initialize_os(obj)
      char* error;
 
      if( (error = OS_initialize()) != NULL ){
-       croak(error);
+       croak("%s", error);
      }
