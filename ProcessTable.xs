@@ -16,12 +16,6 @@ extern "C" {
 #include <pthread.h>
 #endif
 
-/*  As of version 5.005_something it seems sv_undef has been
-supplanted by PL_sv_undef. */
-#ifdef sv_undef
-#define PL_sv_undef sv_undef
-#endif
-
 /* dTHX was used in perl 5.005 */
 #ifndef dTHX
 #define dTHX dTHR
@@ -91,7 +85,7 @@ void store_ttydev( HV* myhash, unsigned long ttynum ){
     hv_store(myhash, "ttydev", strlen("ttydev"), newSVsv(*ttydev), 0); 
   }
   else{
-    /* hv_store(myhash, "ttydev", strlen("ttydev"), &PL_sv_undef, 0); */ 
+    /* hv_store(myhash, "ttydev", strlen("ttydev"), newSV(0), 0); */ 
 
 /*     Stuff an empty string into the hash if there is no tty; this */
 /*     way the ttydev method won't return undef for nonexistent ttys. I'm */
@@ -154,7 +148,7 @@ void bless_into_proc(char* format, char** fields, ...){
       {
       case 'S': /* ignore; creates an undef value for this key in the hash */
 	va_arg(args, char *);
-	hv_store(myhash, key, strlen(key), &PL_sv_undef, 0);
+	hv_store(myhash, key, strlen(key), newSV(0), 0);
 	break;
       case 's':  /* string */
 	s_val = va_arg(args, char *);
@@ -163,7 +157,7 @@ void bless_into_proc(char* format, char** fields, ...){
 
       case 'I':  /* ignore; creates an undef value for this key in the hash */
 	va_arg(args, int);
-	hv_store(myhash, key, strlen(key), &PL_sv_undef, 0);
+	hv_store(myhash, key, strlen(key), newSV(0), 0);
 	break;
       case 'i':  /* int */
 	i_val = va_arg(args, int);
@@ -175,7 +169,7 @@ void bless_into_proc(char* format, char** fields, ...){
 
       case 'U':  /* ignore; creates an undef value for this key in the hash */
 	va_arg(args, unsigned );
-	hv_store(myhash, key, strlen(key), &PL_sv_undef, 0);
+	hv_store(myhash, key, strlen(key), newSV(0), 0);
 	break;
       case 'u':  /* int */
 	u_val = va_arg(args, unsigned);
@@ -184,7 +178,7 @@ void bless_into_proc(char* format, char** fields, ...){
 
       case 'L':  /* ignore; creates an undef value for this key in the hash */
 	va_arg(args, long);
-	hv_store(myhash, key, strlen(key), &PL_sv_undef, 0);
+	hv_store(myhash, key, strlen(key), newSV(0), 0);
 	break;
       case 'l':  /* long */
 	l_val = va_arg(args, long);
@@ -195,7 +189,7 @@ void bless_into_proc(char* format, char** fields, ...){
 
       case 'P':  /* ignore; creates an undef value for this key in the hash */
 	va_arg(args, unsigned long);
-	hv_store(myhash, key, strlen(key), &PL_sv_undef, 0);
+	hv_store(myhash, key, strlen(key), newSV(0), 0);
 	break;
       case 'p':  /* unsigned long */
 	p_val = va_arg(args, unsigned long);
@@ -204,7 +198,7 @@ void bless_into_proc(char* format, char** fields, ...){
 
       case 'J':  /* ignore; creates an undef value for this key in the hash */
 	va_arg(args, long long);
-	hv_store(myhash, key, strlen(key), &PL_sv_undef, 0);
+	hv_store(myhash, key, strlen(key), newSV(0), 0);
 	break;
       case 'j':  /* long long */
 	ll_val = va_arg(args, long long);
