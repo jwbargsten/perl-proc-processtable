@@ -186,7 +186,7 @@ Creates a new ProcessTable object. The constructor can take the following
 flags:
 
 enable_ttys -- causes the constructor to use the tty determination code,
-which is the default behavior.  Setting this to 0 diables this code,
+which is the default behavior.  Setting this to 0 disables this code,
 thus preventing the module from traversing the device tree, which on some
 systems, can be quite large and/or contain invalid device paths (for example,
 Solaris does not clean up invalid device entries when disks are swapped).  If
