@@ -118,7 +118,7 @@ static const char strings[] =
 	"exec\0"
 	"cwd\0"
 /* format string */
-	"IIISIIIILLLLLJJJJIJLLLJJSIIIIIISSSSS\0"
+	"IIISIIIILLLLLJJJJIJPLLJJSIIIIIISSSSS\0"
 };
 
 
