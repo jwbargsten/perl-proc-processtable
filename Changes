@@ -314,3 +314,8 @@ Revision history for Perl extension Proc::ProcessTable.
   (#80391) and others (#81312, #82175 and #80391) and to fix unknown process
   states for debian kernels #71976. Tried to get it compiling under
   MidnightBSD.
+0.49
+  -Fixed #61946 (odd process names), solution by Bernd Kallies. Fixed #48445, patch from
+  Guillaume Rousse. Pulled fixes from Opera Wang. Fixed typos discovered by
+  Salvatore Bonaccorso, David Steinbrunner and HMBRAND. Fixed #89117, patch
+  from yyang. Got it (hopefully) running under kfreebsd.
