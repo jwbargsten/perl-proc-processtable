@@ -32,7 +32,7 @@ struct procstat
 	unsigned long		wchan;
 	/* these are derived from above time values */
 	unsigned long long	time, ctime;
-	/* from above state_c but fixed up elese where */
+	/* from above state_c but fixed up elsewhere */
 	const char		*state;
 	/* values scraped from /proc/{$pid}/status */
 	int				euid, suid, fuid;
