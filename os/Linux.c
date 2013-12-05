@@ -668,7 +668,8 @@ void OS_get_table()
 		calc_prec(format_str, prs, &mem_pool);
 
         /* Go ahead and bless into a perl object */
-        bless_into_proc(format_str, field_names,
+        /* Linux.h defines const char* const* Fiels, but we cast it away, as bless_into_proc only understands char** */
+        bless_into_proc(format_str, (char**) field_names,
             prs->uid,			
             prs->gid,			
             prs->pid,			
