@@ -7,6 +7,11 @@ BEGIN {
       plan skip_all => 'Test irrelevant on cygwin';
   }
 
+  $0="PROC_PROCESSTABLE_TEST_CMD";
+  sleep(1);
+  plan skip_all => 'Cannot set process name, skipping test'
+    unless(`ps -p $$` =~/PROC_PROCESSTABLE_TEST_CMD/ );
+
   use_ok('Proc::ProcessTable'); 
 }
 
