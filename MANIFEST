@@ -36,6 +36,7 @@ hints/bsdi.pl
 hints/netbsd.pl
 hints/openbsd.pl
 hints/cygwin.pl
+hints/gnukfreebsd.pl
 os/Linux.c
 os/Linux.h
 os/Solaris.c
