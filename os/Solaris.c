@@ -51,6 +51,7 @@ void OS_get_table(){
 #if defined(_POSIX_PTHREAD_SEMANTICS)
   while( readdir_r(procdir, procdirp, &procdirp_r ) == 0 && procdirp_r != NULL ){
 #else
+/* this function gets picked wrongly */
   while( readdir_r(procdir, procdirp ) != NULL ){
 #endif
     
