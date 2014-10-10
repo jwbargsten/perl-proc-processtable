@@ -1,3 +1,4 @@
+#define _GNU_SOURCE     /* for canonicalize_file_name */
 #include <ctype.h>      /* is_digit */
 #include <dirent.h>     /* opendir, readdir_r */
 #include <fcntl.h>
