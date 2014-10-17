@@ -319,3 +319,9 @@ Revision history for Perl extension Proc::ProcessTable.
   Guillaume Rousse. Pulled fixes from Opera Wang. Fixed typos discovered by
   Salvatore Bonaccorso, David Steinbrunner and HMBRAND. Fixed #89117, patch
   from yyang. Got it (hopefully) running under kfreebsd.
+0.50
+  - Added hint file for gnukfreebsd.
+0.51
+  - Fixed #65347 (installation hangs on AIX), patch from Rainer Tammer; Fixed
+  #99163 (segfault from canonicalize_file_name), pulled patch from Borislav
+  Nikolov.
