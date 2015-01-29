@@ -10,6 +10,7 @@ use Carp;
 use Proc::ProcessTable;
 use Config;
 use strict;
+use warnings;
 use vars qw(@EXPORT @EXPORT_OK @ISA $VERSION);
 
 @EXPORT=qw(killall);

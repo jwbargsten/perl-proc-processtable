@@ -7,6 +7,7 @@ use base qw/Exporter/;
 use subs qw/get_pids/;
 use vars qw/@EXPORT @EXPORT_OK $ppt_OK/;
 use strict;
+use warnings;
 
 @EXPORT = qw/killfam/;
 @EXPORT_OK = qw/killfam/;

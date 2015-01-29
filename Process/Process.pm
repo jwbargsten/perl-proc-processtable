@@ -1,6 +1,7 @@
 package Proc::ProcessTable::Process;
 
 use strict;
+use warnings;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK $AUTOLOAD);
 
 require Exporter;
