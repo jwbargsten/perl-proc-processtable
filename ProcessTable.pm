@@ -3,6 +3,7 @@ package Proc::ProcessTable;
 use 5.006;
 
 use strict;
+use warnings;
 use Carp;
 use Fcntl;
 use Config;
