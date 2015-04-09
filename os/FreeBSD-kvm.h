@@ -13,7 +13,7 @@
 
 /* We need to pass in a cap for ignore, lower for store on object */
 /* We can just lc these! */
-static char Defaultformat[] = "iiiiiiissssssssssssissiiiiiiiiiiiiiiVV";
+static char Defaultformat[] = "iiiiiiiissssssssssssissiiiiiiiiiiiiiiVV";
 
 /* Mapping of field to type */
 static char* Fields[] = {
@@ -24,6 +24,7 @@ static char* Fields[] = {
     "gid",
     "pgrp",
     "sess",
+    "jid",
 
     "flags",
     "sflags",

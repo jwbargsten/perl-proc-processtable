@@ -144,6 +144,7 @@ void OS_get_table(){
                       procs[i].ki_rgid,
                       procs[i].ki_pgid,
                       procs[i].ki_sid,
+		      procs[i].ki_jid,
 
                       flag,
                       sflag,
