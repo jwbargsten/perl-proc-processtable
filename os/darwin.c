@@ -186,7 +186,7 @@ void OS_get_table(void) {
 
 #ifndef	TH_USAGE_SCALE
 #define	TH_USAGE_SCALE	1000
-#endif	TH_USAGE_SCALE
+#endif	/* ndef TH_USAGE_SCALE */
 #define usage_to_percent(u)	((u*100)/TH_USAGE_SCALE)
 #define usage_to_tenths(u)	(((u*1000)/TH_USAGE_SCALE) % 10)
 		sprintf (pctcpu, "%d.%01d", usage_to_percent (ki->cpu_usage),
