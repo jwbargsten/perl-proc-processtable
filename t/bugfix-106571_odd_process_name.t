@@ -24,14 +24,14 @@ SKIP: {
 
   if ( $pid == 0 ) {
     #child
-    $0 = '(ib_fmr(mlx4_0))';
+    $0 = '[]';
     sleep 10000;
   } else {
     #main
     sleep 1;
     diag "process: " . `ps hwwp $pid`;
     my $t           = Proc::ProcessTable->new;
-    my $cmnd_quoted = quotemeta('(ib_fmr(mlx4_0))');
+    my $cmnd_quoted = quotemeta('[]');
     my ($p) = grep { $_->{pid} == $pid } @{ $t->table };
     like( $p->{cmndline}, qr/$cmnd_quoted/, "odd process commandline bugfix ($cmnd_quoted)" );
     diag "process info: " . Dumper($p);
