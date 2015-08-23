@@ -1,4 +1,7 @@
-#define _GNU_SOURCE     /* for canonicalize_file_name */
+#ifndef _GNU_SOURCE
+    #define _GNU_SOURCE     /* for canonicalize_file_name */
+#endif
+
 #include <ctype.h>      /* is_digit */
 #include <dirent.h>     /* opendir, readdir_r */
 #include <fcntl.h>
@@ -48,13 +51,13 @@ inline static const char *get_string(int elem)
 }
 
 /* init_static_vars()
- * 
+ *
  * Called by pthead_once to initlize global variables (system settings that don't change)
  */
 static void init_static_vars()
 {
     struct obstack      mem_pool;
-    
+
     char                *file_text, *file_off;
     off_t               file_len;
 
@@ -64,7 +67,7 @@ static void init_static_vars()
     system_memory = -1;
 
 	page_size = getpagesize();
-    
+
     /* initilize our mem stack, tempoary memory */
     obstack_init(&mem_pool);
 
@@ -84,7 +87,7 @@ static void init_static_vars()
     for (file_off = file_text; file_off; file_off = strchr(file_off, '\n')) {
         if (file_off != file_text)
             file_off++;
-    
+
         if (strncmp(file_off, "btime", 5) == 0) {
             if (sscanf(file_off, "btime %lld", &boot_time) == 1)
                 break;
@@ -106,7 +109,7 @@ static void init_static_vars()
     for (file_off = file_text; file_off; file_off = strchr(file_off, '\n')) {
         if (file_off != file_text)
             file_off++;
-    
+
         if (strncmp(file_off, "MemTotal:", 9) == 0) {
             if (sscanf(file_off, "MemTotal: %llu", &system_memory) == 1) {
                 system_memory *= 1024; /* convert to bytes */
@@ -120,7 +123,7 @@ static void init_static_vars()
     /* did we scrape the number of pages successfuly? */
     if (total_memory == -1)
         goto fail;
-        
+
 /* intilize system hertz value */
 
 /* cleanup */
@@ -158,7 +161,7 @@ char* OS_initialize()
 
     /* one time initlization of some values that won't change */
     pthread_once(&globals_init, init_static_vars);
-    
+
     return NULL;
 }
 
@@ -196,7 +199,7 @@ inline static char *proc_pid_file(const char *pid, const char *file,
         obstack_printf(mem_pool, "/%s", file);
 
     obstack_1grow(mem_pool, '\0');
-    
+
     return (char *) obstack_finish(mem_pool);
 }
 
@@ -236,7 +239,7 @@ static char *read_file(const char *path, const char *extra_path,
     for (*len = 0; result; *len += result) {
         obstack_blank(mem_pool, 1024);
         start = obstack_base(mem_pool) + *len;
-    
+
         if ((result = read(fd, start, 1024)) == -1) {
             obstack_free(mem_pool, obstack_finish(mem_pool));
             close(fd);
@@ -273,15 +276,15 @@ static void get_user_info(char *pid, char *format_str, struct procstat* prs,
     int         result;
 
     /* (temp) /proc/${pid} */
-    path_pid = proc_pid_file(pid, NULL, mem_pool); 
+    path_pid = proc_pid_file(pid, NULL, mem_pool);
 
     result = stat(path_pid, &stat_pid);
-    
+
     obstack_free(mem_pool, path_pid);
 
     if (result == -1)
         return;
-    
+
     prs->uid = stat_pid.st_uid;
     prs->gid = stat_pid.st_gid;
 
@@ -366,7 +369,7 @@ static bool get_proc_stat(char *pid, char *format_str, struct procstat* prs,
 
     /* enable fields; F_STATE is not the range */
     field_enable_range(format_str, F_PID, F_WCHAN);
-    
+
 done:
     obstack_free(mem_pool, stat_text);
     return read_ok;
@@ -377,13 +380,13 @@ static void eval_link(char *pid, char *link_rel, enum field field, char **ptr,
     char *format_str, struct obstack *mem_pool)
 {
     char *link_file, *link;
-    
+
     /* path to the link file like. /proc/{pid}/{link_rel} */
     link_file = proc_pid_file(pid, link_rel, mem_pool);
 
     /* It's okay to use canonicalize_file_name instead of readlink on linux
      * for the cwd symlink, since on linux the links we care about will never
-     * be relative links (cwd, exec) 
+     * be relative links (cwd, exec)
      * Doing this because readlink works on static buffers */
     link = canonicalize_file_name(link_file);
 
@@ -498,7 +501,7 @@ static void fixup_stat_values(char *format_str, struct procstat* prs)
             prs->state = get_string(UWAIT);
             break;
         case 'T':
-            prs->state = get_string(STOP); 
+            prs->state = get_string(STOP);
             break;
         case 'x':
             prs->state = get_string(DEAD);
@@ -523,15 +526,15 @@ static void fixup_stat_values(char *format_str, struct procstat* prs)
 skip_state_format:
 
     prs->start_time = (prs->start_time / system_hertz) + boot_time;
-    
+
     /* fix time */
 
-    prs->stime      = JIFFIES_TO_MICROSECONDS(prs->stime); 
+    prs->stime      = JIFFIES_TO_MICROSECONDS(prs->stime);
     prs->utime      = JIFFIES_TO_MICROSECONDS(prs->utime);
-    prs->cstime     = JIFFIES_TO_MICROSECONDS(prs->cstime); 
-    prs->cutime     = JIFFIES_TO_MICROSECONDS(prs->cutime); 
+    prs->cstime     = JIFFIES_TO_MICROSECONDS(prs->cstime);
+    prs->cutime     = JIFFIES_TO_MICROSECONDS(prs->cutime);
 
-	/* derived time values */ 
+	/* derived time values */
     prs->time	= prs->utime	+ prs->stime;
     prs->ctime	= prs->cutime	+ prs->cstime;
 
@@ -542,7 +545,7 @@ skip_state_format:
 }
 
 /* calc_prec()
- * 
+ *
  * calculate the two cpu/memory precentage values
  */
 static void calc_prec(char *format_str, struct procstat *prs, struct obstack *mem_pool)
@@ -595,7 +598,7 @@ inline static bool pid_exists(const char *str, struct obstack *mem_pool)
     result = (access(pid_dir_path, F_OK) != -1);
 
     obstack_free(mem_pool, pid_dir_path);
-    
+
     return result;
 }
 
@@ -604,10 +607,10 @@ void OS_get_table()
     /* dir walker storage */
     DIR             *dir;
     struct dirent   *dir_ent, *dir_result;
-    
+
     /* all our storage is going to be here */
     struct obstack  mem_pool;
-    
+
     /* container for scaped process values */
     struct procstat *prs;
 
@@ -671,31 +674,31 @@ void OS_get_table()
         /* Go ahead and bless into a perl object */
         /* Linux.h defines const char* const* Fiels, but we cast it away, as bless_into_proc only understands char** */
         bless_into_proc(format_str, (char**) field_names,
-            prs->uid,			
-            prs->gid,			
-            prs->pid,			
-            prs->comm,			
-            prs->ppid,			
-            prs->pgrp,			
-            prs->sid,			
-            prs->tty,			
-            prs->flags,			
-            prs->minflt,		
-            prs->cminflt,		
-            prs->majflt,		
-            prs->cmajflt,		
-            prs->utime,			
-            prs->stime,			
-            prs->cutime,		
-            prs->cstime,		
-            prs->priority,		
-            prs->start_time,	
-            prs->vsize,			
-            prs->rss,			
-            prs->wchan,			
-	    prs->time,			
-	    prs->ctime,			
-            prs->state,			
+            prs->uid,
+            prs->gid,
+            prs->pid,
+            prs->comm,
+            prs->ppid,
+            prs->pgrp,
+            prs->sid,
+            prs->tty,
+            prs->flags,
+            prs->minflt,
+            prs->cminflt,
+            prs->majflt,
+            prs->cmajflt,
+            prs->utime,
+            prs->stime,
+            prs->cutime,
+            prs->cstime,
+            prs->priority,
+            prs->start_time,
+            prs->vsize,
+            prs->rss,
+            prs->wchan,
+	    prs->time,
+	    prs->ctime,
+            prs->state,
             prs->euid,
             prs->suid,
             prs->fuid,
@@ -712,7 +715,7 @@ void OS_get_table()
         /* we want a new prs, for the next itteration */
         obstack_free(&mem_pool, prs);
     }
-    
+
     closedir(dir);
 
     /* free all our tempoary memory */

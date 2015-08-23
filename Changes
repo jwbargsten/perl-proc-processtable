@@ -325,3 +325,8 @@ Revision history for Perl extension Proc::ProcessTable.
   - Fixed #65347 (installation hangs on AIX), patch from Rainer Tammer; Fixed
   #99163 (segfault from canonicalize_file_name), pulled patch from Borislav
   Nikolov.
+0.52 2015-08-23
+  * Incorporated mainly bugfixes (see github repor for details);
+    OS affected: NetBSD, cygwin, AIX, bsdi, Linux 
+  * Added test for another odd command name ([])
+  * Added some scripts for process tracking. Still in beta-phase.
