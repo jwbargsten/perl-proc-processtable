@@ -18,6 +18,8 @@ if( $1 !~ /^5.[012345]$/ ){
     $self->{DEFINE} = $self->{DEFINE} . " -DPROC_FS";
 }
 
+$self->{DEFINE} .= " -D_POSIX_PTHREAD_SEMANTICS";
+
 # For reasons I don't understand, we have to turn off the large file
 # environment flags in order to compile in the large file environment
 #10/28/2002:
