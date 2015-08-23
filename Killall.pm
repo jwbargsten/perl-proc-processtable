@@ -18,7 +18,6 @@ use vars qw(@EXPORT @EXPORT_OK @ISA $VERSION);
 @ISA=qw(Exporter);
 
 $VERSION='1.0';
-sub VERSION {$VERSION}
 
 # Private function for checking to see if a signal identifier is
 # valid.
