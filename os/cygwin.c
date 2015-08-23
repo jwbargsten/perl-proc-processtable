@@ -218,7 +218,7 @@ OS_get_table()
 	{
 	  char *s;
 	  pname[0] = '\0';
-	  cygwin_conv_path(CCP_WIN_A_TO_POSIX, p->progname, pname, PATH_MAX);
+	  cygwin_conv_path((CCP_RELATIVE|CCP_WIN_A_TO_POSIX), p->progname, pname, PATH_MAX);
 	  s = strchr (pname, '\0') - 4;
 	  if (s > pname && strcasecmp (s, ".exe") == 0)
 	    *s = '\0';
