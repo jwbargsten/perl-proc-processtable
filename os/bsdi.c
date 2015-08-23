@@ -34,7 +34,7 @@ void OS_get_table() {
   char ** argv;
 
   /* for bless_into_proc */
-  static char format[F_LASTFIELD + 1];
+  static char format[F_LASTFIELD + 2];
   
   /* variables to hold some values for bless_into_proc */
   char state[20];

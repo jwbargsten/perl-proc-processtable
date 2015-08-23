@@ -60,7 +60,7 @@ void OS_get_table(){
 
   /* for bless_into_proc */
   struct procstat prs; 
-  static char format[F_LASTFIELD + 1];
+  static char format[F_LASTFIELD + 2];
   char cmndline[ARG_MAX];
 
   if( (procdir = opendir("/proc")) == NULL ){

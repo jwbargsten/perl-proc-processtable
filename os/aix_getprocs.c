@@ -36,7 +36,7 @@ static unsigned long long memory;
 static int pagesize = 0;
 static int ncpus = 0;
 static double now_time = 0.0;
-static char format[F_LASTFIELD+1];
+static char format[F_LASTFIELD+2];
 
 
 char *OS_initialize() {
