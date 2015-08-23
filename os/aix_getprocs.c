@@ -10,9 +10,11 @@
  *
  */
 
+#include <cf.h>
 #include <odmi.h>
 #include <procinfo.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/cfgodm.h>
 #include <sys/types.h>
 
@@ -34,7 +36,7 @@ void bless_procs(struct procsinfo64 *, int);
 
 static unsigned long long memory;
 static int pagesize = 0;
-static int ncpus = 0;
+static long int ncpus = 0;
 static double now_time = 0.0;
 static char format[F_LASTFIELD+2];
 
