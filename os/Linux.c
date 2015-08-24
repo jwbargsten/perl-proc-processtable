@@ -329,6 +329,11 @@ static bool get_proc_stat(char *pid, char *format_str, struct procstat* prs,
      * plus a terminating NULL byte; prs->comm will be NULL terminated since
      * that area of memory is all zerored out when prs is allocated */
     if (sscanf(stat_text, "%d (%15c", &prs->pid, prs->comm) != 2)
+      /* we might get an empty command name, so check for it:
+       * do the open and close parenteses lie next to each other?
+       * proceed if yes, finish otherwise
+       */
+      if((strchr(stat_text,'(') + 1) != paren)
         goto done;
 
     /* address at which we pickup again, after the ')'
