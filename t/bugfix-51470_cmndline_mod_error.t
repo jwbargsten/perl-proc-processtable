@@ -15,7 +15,7 @@ SKIP: {
   sleep(1);
 
   skip 'Cannot set process name', 1
-    unless ( `ps -p $$` =~ /PROC_PROCESSTABLE_TEST_CMD/ );
+    unless ( `ps hwwp $$` =~ /PROC_PROCESSTABLE_TEST_CMD/ );
 
   $SIG{CHLD} = 'IGNORE';
 
