@@ -19,7 +19,7 @@ require DynaLoader;
 @EXPORT = qw(
     
 );
-$VERSION = '0.52';
+$VERSION = '0.53';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
