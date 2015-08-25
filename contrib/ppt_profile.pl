@@ -14,14 +14,14 @@ my %opt = (
   num_steps => 3,
 );
 
-GetOptions( \%opt, 'process_id|pid|p', 'help|?', 'interval=i', 'num_steps=i' ) or pod2usage(2);
+GetOptions( \%opt, 'process_id|pid|p', 'help|?', 'interval=f', 'num_steps=i' ) or pod2usage(2);
 
 pod2usage( -exitval => 0, -verbose => 2 ) if ( $opt{help} );
 pod2usage(2) unless ( @ARGV && @ARGV > 1 );
 
 my ( $log_fn, @cmd ) = @ARGV;
 
-my $poll_intervall    = $opt{interval} * 1000 * 1000;
+my $poll_intervall    = int($opt{interval} * 1000 * 1000);
 my $num_steps         = $opt{num_steps};
 my $script_start_time = [ Time::HiRes::gettimeofday() ];
 
