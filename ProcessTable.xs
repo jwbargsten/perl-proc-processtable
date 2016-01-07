@@ -317,7 +317,7 @@ table(obj)
 
      /* Check that we have an actual object. 
        calling Proc::Processtable->table SIGSEVs
-       calling on an actual object is valid my $proc_obj = new Proc::ProcessTable; $proc_obj->table; 
+       calling on an actual object is valid my $proc_obj = Proc::ProcessTable->new; $proc_obj->table; 
      */
      if (!obj || !SvOK (obj) || !SvROK (obj) || !sv_isobject (obj)) {
          croak("Must call table from an initalized object created with new");

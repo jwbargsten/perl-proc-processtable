@@ -169,9 +169,9 @@ Proc::ProcessTable - Perl extension to access the unix process table
 
   use Proc::ProcessTable;
 
-  $p = new Proc::ProcessTable( 'cache_ttys' => 1 ); 
-  @fields = $p->fields;
-  $ref = $p->table;
+  my $p = Proc::ProcessTable->new( 'cache_ttys' => 1 ); 
+  my @fields = $p->fields;
+  my $ref = $p->table;
 
 =head1 DESCRIPTION
 
@@ -225,10 +225,10 @@ are supported directly by internal perl functions.
  # A cheap and sleazy version of ps
  use Proc::ProcessTable;
 
- $FORMAT = "%-6s %-10s %-8s %-24s %s\n";
- $t = new Proc::ProcessTable;
+ my $FORMAT = "%-6s %-10s %-8s %-24s %s\n";
+ my $t = Proc::ProcessTable->new;
  printf($FORMAT, "PID", "TTY", "STAT", "START", "COMMAND"); 
- foreach $p ( @{$t->table} ){
+ foreach my $p ( @{$t->table} ){
    printf($FORMAT, 
           $p->pid, 
           $p->ttydev, 
@@ -241,11 +241,11 @@ are supported directly by internal perl functions.
  # Dump all the information in the current process table
  use Proc::ProcessTable;
 
- $t = new Proc::ProcessTable;
+ my $t = Proc::ProcessTable->new;
 
- foreach $p (@{$t->table}) {
+ foreach my $p (@{$t->table}) {
   print "--------------------------------\n";
-  foreach $f ($t->fields){
+  foreach my $f ($t->fields){
     print $f, ":  ", $p->{$f}, "\n";
   }
  }              
