@@ -5,7 +5,6 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-use Fcntl;
 use Config;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK $AUTOLOAD);
 
@@ -111,15 +110,25 @@ sub initialize
       else
       {
         $self->_get_tty_list;
-        my $old_umask = umask;
-        umask 022;
 
-        sysopen( my $ttydevs_fh, $TTYDEVSFILE, O_WRONLY | O_EXCL | O_CREAT )
-          or die "$TTYDEVSFILE was created by other process";
+        require File::Temp;
+        require File::Basename;
+
+        my($ttydevs_fh, $ttydevs_tmpfile) = File::Temp::tempfile('ProcessTable_XXXXXXXX', DIR => File::Basename::dirname($TTYDEVSFILE));
+        chmod 0644, $ttydevs_tmpfile;
         Storable::store_fd( \%Proc::ProcessTable::TTYDEVS, $ttydevs_fh );
         close $ttydevs_fh;
 
-        umask $old_umask;
+        if( !rename $ttydevs_tmpfile, $TTYDEVSFILE )
+        {
+          my $err = $!;
+          unlink $ttydevs_tmpfile;
+          if( !-r $TTYDEVSFILE)
+          {
+            die "Renaming $ttydevs_tmpfile to $TTYDEVSFILE failed: $err";
+          }
+          # else somebody else obviously created the file in the meantime
+        }
       }
     }
     else
