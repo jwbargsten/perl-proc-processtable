@@ -128,9 +128,11 @@ void OS_get_table() {
 		pargv = kvm_getargv(kd, (const struct kinfo_proc *) &(procs[i]), 0);
 		if (pargv) {
 			argcount = 0;
-			while (pargv[argcount] && strlen(cmndline) <= ARG_MAX) {
+			while (pargv[argcount] && strlen(cmndline)+strlen(pargv[argcount])+1 <= ARG_MAX) {
 				STRLCAT(1,cmndline,pargv[argcount]);
-				STRLCAT(2,cmndline," ");
+				if (pargv[argcount+1]) {
+					STRLCAT(2,cmndline," ");
+				}
 				argcount++;
 			}
 		}
