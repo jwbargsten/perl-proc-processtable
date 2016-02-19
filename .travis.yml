@@ -23,6 +23,8 @@ before_script:
 script:
   - perl Makefile.PL
   - make
+  - make test
+  - make install
   - prove -bv $(test-dirs)
 after_success:
   - coverage-report

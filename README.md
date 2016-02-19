@@ -89,7 +89,7 @@ After unpacking the tar file, do:
 
         perl Makefile.PL 
         make
-	make test
+	    make test
         make install
 
 There is embedded POD documentation in ProcessTable.pm and
