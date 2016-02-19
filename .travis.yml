@@ -1,0 +1,26 @@
+language: perl
+perl:
+  - '5.23.6-thr'              # installs the current dev. release with threading
+  - '5.22.1-thr'              # installs perl 5.22.1 with threading
+  - '5.20.2-thr'              # installs perl 5.20.0 with threading
+  - '5.18.2-thr'              # installs perl 5.18.2 with threading
+  - '5.16.3-thr'              # installs perl 5.16.3 with threading
+  - '5.14.4-thr'              # installs perl 5.14.4 with threading
+  - '5.12.5-thr'              # installs perl 5.12.5 with threading
+  - '5.10.1-thr'              # installs perl 5.10.1 with threading
+before_install:
+  - git clone git://github.com/haarg/perl-travis-helper ~/perl-travis-helper
+  - source ~/perl-travis-helper/init
+  - build-perl
+  - perl -V
+install:
+   - cpanm -v --notest --installdeps .
+   - export RELEASE_TESTING=1 AUTOMATED_TESTING=1 AUTHOR_TESTING=1 COVERAGE=1
+before_script:
+  - coverage-setup
+script:
+  - perl Makefile.PL
+  - make
+  - prove -bv $(test-dirs)
+after_success:
+  - coverage-report
