@@ -11,7 +11,7 @@ perl:
   - "5.18.1-thr"
   - "5.20"
   - "5.22"
-	- "dev"
+  - "dev"
 matrix:
   include:
     - perl: 5.18.1-thr
@@ -21,7 +21,7 @@ before_install:
   - source ~/perl-travis-helper/init
   - build-perl
   - perl -V
-	- build-dist
+  - build-dist
 install:
   - cpan-install --deps
   - cpan-install --coverage
