@@ -178,6 +178,6 @@ D. Urist, durist@frii.com
 
 =head1 SEE ALSO
 
-Proc::ProcessTable.pm, perl(1).
+L<Proc::ProcessTable>, L<perl(1)>.
 
 =cut

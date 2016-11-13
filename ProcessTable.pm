@@ -262,7 +262,7 @@ D. Urist, durist@frii.com
 
 =head1 SEE ALSO
 
-Proc::ProcessTable::Process.pm, perl(1).
+L<Proc::ProcessTable::Process>, L<perl(1)>.
 
 =cut
 
