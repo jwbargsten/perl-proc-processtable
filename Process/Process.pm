@@ -45,6 +45,7 @@ sub AUTOLOAD {
 ########################################################
 sub kill {
   my ($self, $signal) = @_;
+  die "PID " . $self->pid . " not valid." unless($self->pid =~ /^-?\d+$/);
   return( kill($signal, $self->pid) );
 }
 
