@@ -2,33 +2,16 @@ language: perl
 perl:
   - "5.8"
   - "5.8.7"
-  - "5.8.7-thr"
   - "5.10"
   - "5.12"
   - "5.14"
   - "5.16"
   - "5.18"
-  - "5.18.1-thr"
   - "5.20"
   - "5.22"
+  - "5.24"
   - "dev"
-matrix:
-  include:
-    - perl: 5.18.1-thr
-      env: AUTHOR_TESTING=1 COVERAGE=1
-before_install:
-  - git clone git://github.com/travis-perl/helpers ~/perl-travis-helper
-  - source ~/perl-travis-helper/init
-  - build-perl
-  - perl -V
-  - build-dist
-install:
-  - cpan-install --deps
-  - cpan-install --coverage
-sudo: false
-before_script:
-  - coverage-setup
-script:
-  - make test
-after_success:
-  - coverage-report
+script: 'perl Makefile.PL; make test'
+branches:
+  only:
+    - master
