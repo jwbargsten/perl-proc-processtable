@@ -31,9 +31,9 @@ SKIP: {
     sleep 1;
     diag "process: " . `ps hwwp $pid`;
     my $t           = Proc::ProcessTable->new;
-    my $cmnd_quoted = quotemeta('');
+    my $cmnd_quoted = '';
     my ($p) = grep { $_->{pid} == $pid } @{ $t->table };
-    like( $p->{cmndline}, qr/$cmnd_quoted/, "odd process commandline bugfix ($cmnd_quoted)" );
+    is( $p->{cmndline}, $cmnd_quoted, "odd process commandline bugfix ($cmnd_quoted)" );
     diag "process info: " . Dumper($p);
     kill 9, $pid;
   }
