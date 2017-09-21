@@ -28,7 +28,7 @@ my $script_start_time = [ Time::HiRes::gettimeofday() ];
 my $pid;
 
 if ( $opt{process_id} ) {
-  $pid = $opt{process_id};
+  $pid = shift @cmd;
 } else {
   $SIG{CHLD} = 'IGNORE';
 
@@ -51,7 +51,13 @@ if ( $pid == 0 ) {
 
   my $ppt = Proc::ProcessTable->new;
 
-  open my $log_fh, '>', $log_fn or die "Can't open filehandle: $!";
+  say STDERR "tracking PID $pid";
+  my $log_fh;
+  if ( $log_fn eq '-' ) {
+    $log_fh = \*STDOUT;
+  } else {
+    open $log_fh, '>', $log_fn or die "Can't open filehandle: $!";
+  }
 
   print $log_fh join( "\t", qw/tp time pids rss vsz pcpu/ ), "\n";
 
@@ -66,6 +72,7 @@ if ( $pid == 0 ) {
     my $sum_start = 0;
 
     my %childs = map { $_ => 1 } subproc_ids( $pid, $pt );
+    $childs{$pid}++ if ( $opt{process_id} );
     for my $p (@$pt) {
       #[0] pid
       #[1] ppid
@@ -74,23 +81,29 @@ if ( $pid == 0 ) {
       #[4] time
       #[5] start
       if ( $childs{ $p->[0] } ) {
-        $sum_rss   += $p->[2];
-        $sum_vsz   += $p->[3];
-        $sum_cpu   += $p->[4];
-        $sum_start += time - $p->[5];
+        $sum_rss += $p->[2];
+        $sum_vsz += $p->[3];
+        # utime + stime (cutime and cstime not needed, because we iterate through children
+        $sum_cpu += $p->[4];
         push @pids, $p->[0];
       }
     }
+
+# calc pct cpu per interval:
+# we need seconds since
+#https://stackoverflow.com/questions/16726779/how-do-i-get-the-total-cpu-usage-of-an-application-from-proc-pid-stat
+
+    #pctcpu = ( 100.0f * sum over all (prs->utime + prs->stime ) * 1/1e6 ) / (time(NULL) - prs->start_time);
 
     shift @cpu_time if ( @cpu_time > $num_steps );
     push @cpu_time, $sum_cpu;
 
     shift @start_time if ( @start_time > $num_steps );
-    push @start_time, $sum_start;
+    push @start_time, $t;
 
     my $ratio = 0;
     if ( @start_time >= $num_steps ) {
-      my $diff_cpu = ( $cpu_time[-1] - $cpu_time[0] ) / ( 1000 * 1000 );
+      my $diff_cpu   = ( $cpu_time[-1] - $cpu_time[0] ) / 1e6;
       my $diff_start = ( $start_time[-1] - $start_time[0] );
       $ratio = $diff_cpu / $diff_start if ( $diff_start > 0 );
     }
@@ -105,6 +118,7 @@ if ( $pid == 0 ) {
 
 sub parse_ppt {
   my $ppt_table = shift;
+
   my @table = map { [ $_->pid, $_->ppid, $_->rss, $_->size, $_->time, $_->start ] } @$ppt_table;
   return \@table;
 }
@@ -128,7 +142,7 @@ ppt_profile_cmd.pl - track the cpu and memory usage of a command
 
 =head1 SYNOPSIS
 
-ppt_profile_cmd.pl [OPTIONS] <log file> <command> [<arg1> <arg2> ... <argn>]
+ppt_profile_cmd.pl [OPTIONS] <log file> <command|process_id> [<arg1> <arg2> ... <argn>]
 
 =head1 DESCRIPTION
 
