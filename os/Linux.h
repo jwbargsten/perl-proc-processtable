@@ -58,7 +58,8 @@ enum state
 	UWAIT,
     DEAD,
     WAKEKILL,
-    TRACINGSTOP
+    TRACINGSTOP,
+    PARKED
 };
 
 

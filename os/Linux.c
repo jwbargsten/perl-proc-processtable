@@ -520,6 +520,9 @@ static void fixup_stat_values(char *format_str, struct procstat* prs)
         case 't':
             prs->state = get_string(TRACINGSTOP);
             break;
+        case 'P':
+            prs->state = get_string(PARKED);
+            break;
         /* unknown state, state is already set to NULL */
         default:
             ppt_warn("Ran into unknown state (hex char: %x)", (int) prs->state_c);
