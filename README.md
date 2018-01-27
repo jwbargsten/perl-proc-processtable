@@ -1,12 +1,14 @@
-#Proc::ProcessTable [![Build Status](https://travis-ci.org/jwbargsten/perl-proc-processtable.svg?branch=master)](https://travis-ci.org/jwbargsten/perl-proc-processtable) [![Coverage Status](https://coveralls.io/repos/github/jwbargsten/perl-proc-processtable/badge.svg?branch=master)](https://coveralls.io/github/jwbargsten/perl-proc-processtable?branch=master)
+# Proc::ProcessTable
 
-Please use rt.cpan.org to submit bugs and patches.
+[![Build Status](https://travis-ci.org/jwbargsten/perl-proc-processtable.svg?branch=master)](https://travis-ci.org/jwbargsten/perl-proc-processtable) [![Coverage Status](https://coveralls.io/repos/github/jwbargsten/perl-proc-processtable/badge.svg?branch=master)](https://coveralls.io/github/jwbargsten/perl-proc-processtable?branch=master)
 
-##MAINTENANCE STATUS
+Please use github or rt.cpan.org to submit bugs and patches.
 
-This module is now being lightly "maintained" by Jonathan Swartz <swartz@pobox.com>.  I
-have nearly zero knowledge of the implementation within but wanted to rescue the
-distribution from abandonment and try to get critical bug fixes out. This will need to be
+## MAINTENANCE STATUS
+
+This module is maintained by Joachim Bargsten. I have nearly zero knowledge of
+the implementation within but wanted to rescue the distribution from
+abandonment and try to get critical bug fixes out. This will need to be
 a community effort.
 
 The source is in github -
@@ -15,9 +17,9 @@ The source is in github -
 
 Commit bits will be generously granted, send me your github id.
 
-##STATUS
+## STATUS
 
-This is BETA software; it seems to work, but use at your own risk :) 
+This is BETA software; it seems to work, but use at your own risk :)
 
 Currently works on darwin, nonstop-ux, Cygwin on Windows, linux,
 solaris, aix, hpux, freebsd, irix, dec_osf, bsdi, netbsd, unixware 7.x,
@@ -41,7 +43,7 @@ appreciated. If you want to submit a patch, *please* use standard
 context-diff format; if you're submitting a port, a tarball of the new
 files is great.
 
-##DESCRIPTION
+## DESCRIPTION
 
 This module is a first crack at providing a consistent interface to
 Unix (and maybe other multitasking OS's) process table information.
@@ -55,22 +57,22 @@ very efficient or aesthetic way to do things.
 
 With this module, you can do things like this:
 
-    # kill memory pigs 
+    # kill memory pigs
     use Proc::ProcessTable;
 
     my $t = Proc::ProcessTable->new;
     foreach my $p ( @{$t->table} ) {
         if( $p->pctmem > 95 ){
 	        $p->kill(9);
-        }		
+        }
     }
 
 There is another short example in the file "example.pl" in the
 distribution. For a more elaborate example (in German), see
 <http://www.linux-magazin.de/ausgabe.1999.02/Proc/proc.html>.
 <shameless plug> If you can't read German, try my other module,
-WWW::Babelfish!</shameless plug> 
-	
+WWW::Babelfish!</shameless plug>
+
 There are also two contributed modules: a module called Proc::Killall
 contributed by Aaron Sherman to kill all processes whose command-lines
 match a given pattern, and a module called Proc::Killfam by Stephen
@@ -79,55 +81,50 @@ are installed along with Proc::ProcessTable. Pod documentation is
 included in both of them.
 
 
-##INSTALLATION
+## INSTALLATION
 
 This module needs the File::Find and Storable modules in order to
 work. File::Find is generally included with perl distributions;
-Storable is available from CPAN. 
+Storable is available from CPAN.
 
 After unpacking the tar file, do:
 
-        perl Makefile.PL 
+        perl Makefile.PL
         make
-	    make test
+        make test
         make install
 
 There is embedded POD documentation in ProcessTable.pm and
 Process/Process.pm.
 
-##ACKNOWLEDGEMENTS
+## ACKNOWLEDGEMENTS
 
 Thanks to the many people who have sent in ports and patches. Without
 them this module would be impossible to support on so many platforms.
 Patches are noted in the Changes file.
 
-David Paquet <David.Paquet@cnes.fr>		AIX port
-Mike Romberg <romberg@fsl.noaa.gov>		HPUX port
-Slaven Rezic <eserte@cs.tu-berlin.de>		FreeBSD port
-W. Phillip Moore <wpm@ms.com>			IRIX port
-Peter ? <hooft@natlab.research.philips.com>	IRIX version patch
-Bernhard Schmalhofer <Bernhard.Schmalhofer@gmx.de>	dec_osf port
-Sean Eskins <sean@gilasoft.com>				bsdi port
-Peter Reich <pr@alles.prima.de>				netbsd port
-Aaron Sherman <ajs@ajs.com>		Proc::Killall module
-Steve Lidie <sol0@Lehigh.EDU>		Killfam.pm module
-Martin Lucina <mato@catalyst.net.nz>	Unixware 7.x port
-Shawn Clifford <shawn.a.clifford@lmco.com> SunOS port
-J Robert Ray <jrray@jrray.org>		Windows (Cygwin) port.
-Tom Wyant <twyant3@comcast.net>		Darwin port.
-Mike Steinert <mike.steinert@motorola.com>
-					Nonstop-UX port.
-<bsd@openbsd.rutgers.edu>		Openbsd port.
+* David Paquet <David.Paquet@cnes.fr>: AIX port
+* Mike Romberg <romberg@fsl.noaa.gov>: HPUX port
+* Slaven Rezic <eserte@cs.tu-berlin.de>: FreeBSD port
+* W. Phillip Moore <wpm@ms.com>: IRIX port
+* Peter ? <hooft@natlab.research.philips.com>: IRIX version patch
+* Bernhard Schmalhofer <Bernhard.Schmalhofer@gmx.de>: dec_osf port
+* Sean Eskins <sean@gilasoft.com>: bsdi port
+* Peter Reich <pr@alles.prima.de>: netbsd port
+* Aaron Sherman <ajs@ajs.com>: Proc::Killall module
+* Steve Lidie <sol0@Lehigh.EDU>: Killfam.pm module
+* Martin Lucina <mato@catalyst.net.nz>: Unixware 7.x port
+* Shawn Clifford <shawn.a.clifford@lmco.com> SunOS port
+* J Robert Ray <jrray@jrray.org>:Windows (Cygwin) port.
+* * Tom Wyant <twyant3@comcast.net>:Darwin port.
+* Mike Steinert <mike.steinert@motorola.com>: Nonstop-UX port.
+* <bsd@openbsd.rutgers.edu>: Openbsd port.
 
 Please note that Bernard Schmalhofer is no longer able to provide
 support for the dec_osf port.
-			
-##COPYRIGHT
+
+## COPYRIGHT
 
 Copyright (c) 1998-2008 Daniel J. Urist. All rights reserved.
 This package is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
-
---
-Daniel J. Urist
-durist@frii.com
