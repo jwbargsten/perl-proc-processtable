@@ -17,6 +17,17 @@ SKIP: {
   skip 'Cannot set process name', 1
     unless ( `ps hwwp $$` =~ /PROC_PROCESSTABLE_TEST_CMD/ );
 
+  # From Joelle Maslak: Can't set a process name to a blank name on
+  # OpenBSD, so this test is not relevant.  From reading perlvar, it
+  # appears that this is likely true on other BSDs, so rather than
+  # looking for the OpenBSD operating system, we see if the command line
+  # starts with "perl:" as it does on OpenBSD (and presumably other
+  # BSDs).  See OpenBSD's setproctitle(3) for information on what at
+  # least OpenBSD allows: 
+  #   https://man.openbsd.org/setproctitle.3
+  skip 'Likely *BSD system, can\'t blank process name', 1
+    unless ( `ps hwwp $$` =~ /^perl: / );
+
   $SIG{CHLD} = 'IGNORE';
 
   my $pid = fork;
