@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/jwbargsten/perl-proc-processtable.svg?branch=master)](https://travis-ci.org/jwbargsten/perl-proc-processtable) [![Coverage Status](https://coveralls.io/repos/github/jwbargsten/perl-proc-processtable/badge.svg?branch=master)](https://coveralls.io/github/jwbargsten/perl-proc-processtable?branch=master)
 
-Please use github or rt.cpan.org to submit bugs and patches.
+Please use github or [rt.cpan.org](https://rt.cpan.org/Public/Dist/Display.html?Name=Proc-ProcessTable) to submit bugs and patches.
 
 ## MAINTENANCE STATUS
 
@@ -116,7 +116,7 @@ Patches are noted in the Changes file.
 * Martin Lucina <mato@catalyst.net.nz>: Unixware 7.x port
 * Shawn Clifford <shawn.a.clifford@lmco.com> SunOS port
 * J Robert Ray <jrray@jrray.org>:Windows (Cygwin) port.
-* * Tom Wyant <twyant3@comcast.net>:Darwin port.
+* Tom Wyant <twyant3@comcast.net>:Darwin port.
 * Mike Steinert <mike.steinert@motorola.com>: Nonstop-UX port.
 * <bsd@openbsd.rutgers.edu>: Openbsd port.
 
