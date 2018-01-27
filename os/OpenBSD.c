@@ -24,6 +24,8 @@
 #include <time.h>
 #include <unistd.h>
 
+void ppt_croak(const char *pat, ...);
+
 /* No need for the procstat structure since we don't use /proc */
 
 /* We need to pass in a cap for ignore, lower for store on object */
