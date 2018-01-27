@@ -30,7 +30,7 @@ void ppt_croak(const char *pat, ...);
 
 /* We need to pass in a cap for ignore, lower for store on object */
 /* We can just lc these! */
-static char Defaultformat[] = "liiiiiiiiiiiissss";
+static char Defaultformat[] = "liiiiiiiiiiiillssss";
 
 /* Mapping of field to type */
 static char* Fields[] = {
@@ -47,12 +47,14 @@ static char* Fields[] = {
 	"utime",
 	"stime",
 	"start",
+	"size",
+	"rss",
 	"fname",
 	"state",
 	"ttydev",
 	"cmndline"
 };
-#define F_LASTFIELD 16
+#define F_LASTFIELD 18
 
 /* Set up simple bounds checking */
 #define STRLCPY(num,targ,src) if (strlcpy(targ,src,sizeof(targ)) >= sizeof(targ)) \
@@ -75,6 +77,8 @@ void OS_get_table() {
 	int i, argcount;
 	int ttynum;
 	long start;
+	unsigned long vsize;
+	unsigned long rss;
 	char *ttydev;
 	char cmndline[ARG_MAX+1];
 	char **pargv;
@@ -125,6 +129,9 @@ void OS_get_table() {
 				break;
 		}
 
+		vsize = getpagesize() * (procs[i].p_vm_dsize + procs[i].p_vm_ssize + procs[i].p_vm_tsize);
+		rss   = getpagesize() * procs[i].p_vm_rssize;
+
 		/* arguments */
 		cmndline[0] = '\0';
 		pargv = kvm_getargv(kd, (const struct kinfo_proc *) &(procs[i]), 0);
@@ -155,6 +162,8 @@ void OS_get_table() {
 			procs[i].p_uutime_sec,
 			procs[i].p_ustime_sec,
 			procs[i].p_ustart_sec,
+			vsize,
+			rss,
 			procs[i].p_comm,
 			state,
 			ttydev,
