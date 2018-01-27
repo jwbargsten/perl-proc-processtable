@@ -1,4 +1,4 @@
-# Test size attribute on OpenBSD
+# Test size & RSS attribute on OpenBSD
 # Added by Joelle Maslak <jmaslak@antelope.net>, used bugfix-51470 for
 # outline.
 
@@ -34,13 +34,16 @@ SKIP: {
     sleep 1;
     diag "process: " . `ps -lp $pid `;
 
-    my $pstmp = `ps -p $pid -o vsz`;
+    my $pstmp = `ps -p $pid -o vsz,rss`;
     my (@lines) = split '\n', $pstmp;
-    my $ps_vsize = $lines[1] * 1024;
+    my (@parts) = split /\s+/, $lines[1];
+    my $ps_vsize = $parts[0] * 1024;
+    my $ps_rss   = $parts[1] * 1024;
 
     my $t   = Proc::ProcessTable->new;
     my ($p) = grep { $_->{pid} == $pid } @{ $t->table };
     is( $p->{size}, $ps_vsize, "Process size = ps vsz" );
+    is( $p->{rss},  $ps_rss,   "Process rss  = ps rss" );
     diag "process info: " . Dumper($p);
     kill 9, $pid;
   }
