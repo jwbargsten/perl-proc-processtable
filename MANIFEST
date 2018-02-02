@@ -18,7 +18,6 @@ README.openbsd
 README.hpux
 README.cygwin
 PORTING
-TODO
 example.pl
 Process/Makefile.PL
 Process/Process.pm
