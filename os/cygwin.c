@@ -136,25 +136,6 @@ init_win ()
   return 1;
 }
 
-static char *
-start_time (external_pinfo *child)
-{
-  time_t st = child->start_time;
-  time_t t = time (NULL);
-  static char stime[40] = {'\0'};
-  char now[40];
-
-  strncpy (stime, ctime (&st) + 4, 15);
-  strcpy (now, ctime (&t) + 4);
-
-  if ((t - st) < (24 * 3600))
-    return (stime + 7);
-
-  stime[6] = '\0';
-
-  return stime;
-}
-
 #define FACTOR (0x19db1ded53ea710LL)
 #define NSPERSEC 10000000LL
 
