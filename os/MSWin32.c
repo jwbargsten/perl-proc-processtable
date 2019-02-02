@@ -16,15 +16,18 @@ details. */
 #include <stdio.h>
 #include <windows.h>
 #include <time.h>
-#include <getopt.h>
-#include <unistd.h>
 #include <stdlib.h>
-#include <pwd.h>
-#include <sys/cygwin.h>
 #include <tlhelp32.h>
 #include <psapi.h>
 
-#include "os/cygwin.h"
+#ifdef USE_CYGWIN
+#include <getopt.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <sys/cygwin.h>
+#endif
+
+#include "os/MSWin32.h"
 
 typedef BOOL (WINAPI *ENUMPROCESSMODULES)(
   HANDLE hProcess,      // handle to the process
@@ -157,6 +160,8 @@ to_time_t (FILETIME *ptr)
   return x;
 }
 
+#ifdef USE_CYGWIN
+
 void
 OS_get_table()
 {
@@ -256,6 +261,8 @@ OS_get_table()
     }
   (void) cygwin_internal (CW_UNLOCK_PINFO);
 }
+
+#endif
 
 char*
 OS_initialize()
