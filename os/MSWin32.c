@@ -25,38 +25,48 @@ details. */
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/cygwin.h>
+#else
+#include <sddl.h>
 #endif
 
 #include "os/MSWin32.h"
 
 
+#ifdef USE_CYGWIN
 typedef DWORD (WINAPI *GETMODULEFILENAME)(
   HANDLE hProcess,
   HMODULE hModule,
   LPTSTR lpstrFileName,
   DWORD nSize
 );
+#endif
 
 typedef HANDLE (WINAPI *CREATESNAPSHOT)(
     DWORD dwFlags,
     DWORD th32ProcessID
 );
 
-// Win95 functions
 typedef BOOL (WINAPI *PROCESSWALK)(
     HANDLE hSnapshot,
     LPPROCESSENTRY32 lppe
 );
 
+#ifdef USE_CYGWIN
 typedef struct external_pinfo external_pinfo;
 
 GETMODULEFILENAME myGetModuleFileNameEx;
+#endif
+
 CREATESNAPSHOT myCreateToolhelp32Snapshot;
 PROCESSWALK myProcess32First;
 PROCESSWALK myProcess32Next;
 
 static int init_win_result = FALSE;
 
+extern void bless_into_proc(char* , char**, ...);
+
+#ifdef USE_CYGWIN
+// Win95 functions
 static DWORD WINAPI GetModuleFileNameEx95 (
   HANDLE hProcess,
   HMODULE hModule,
@@ -85,12 +95,15 @@ static DWORD WINAPI GetModuleFileNameEx95 (
   CloseHandle (h);
   return 0;
 }
+#endif
 
 int
 init_win ()
 {
-  OSVERSIONINFO os_version_info;
   HMODULE h;
+
+#ifdef USE_CYGWIN
+  OSVERSIONINFO os_version_info;
 
   memset (&os_version_info, 0, sizeof os_version_info);
   os_version_info.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
@@ -106,6 +119,7 @@ init_win ()
 	return 0;
       return 1;
     }
+#endif
 
   h = GetModuleHandle("KERNEL32.DLL");
   myCreateToolhelp32Snapshot = (CREATESNAPSHOT)GetProcAddress (h, "CreateToolhelp32Snapshot");
@@ -114,7 +128,9 @@ init_win ()
   if (!myCreateToolhelp32Snapshot || !myProcess32First || !myProcess32Next)
     return 0;
 
+#ifdef USE_CYGWIN
   myGetModuleFileNameEx = GetModuleFileNameEx95;
+#endif
   return 1;
 }
 
@@ -234,6 +250,138 @@ OS_get_table()
 
     }
   (void) cygwin_internal (CW_UNLOCK_PINFO);
+}
+
+#else
+
+static void get_process_owner(HANDLE process, char string_sid[184], char user_name[256], char domain_name[255])
+{
+  HANDLE process_token;
+  PTOKEN_USER token_user;
+  DWORD token_user_size;
+  char *string_sid_ptr;
+  size_t string_sid_len;
+  DWORD user_name_size;
+  DWORD domain_name_size;
+  SID_NAME_USE sid_type;
+
+  string_sid[0] = 0;
+  user_name[0] = 0;
+  domain_name[0] = 0;
+
+  if (!OpenProcessToken (process, TOKEN_QUERY, &process_token))
+    return;
+
+  if (!GetTokenInformation (process_token, TokenUser, NULL, 0, &token_user_size) && GetLastError () != ERROR_INSUFFICIENT_BUFFER)
+    {
+      CloseHandle (process_token);
+      return;
+    }
+
+  token_user = malloc (token_user_size);
+  if (!token_user)
+    {
+      CloseHandle (process_token);
+      return;
+    }
+
+  if (!GetTokenInformation (process_token, TokenUser, token_user, token_user_size, &token_user_size))
+    {
+      free (token_user);
+      CloseHandle (process_token);
+      return;
+    }
+
+  if (ConvertSidToStringSidA (token_user->User.Sid, &string_sid_ptr))
+    {
+      string_sid_len = strlen (string_sid_ptr);
+      if (string_sid_len < 184)
+        memcpy (string_sid, string_sid_ptr, string_sid_len+1);
+      LocalFree (string_sid_ptr);
+    }
+
+  user_name_size = 256;
+  domain_name_size = 256;
+  if (!LookupAccountSidA (NULL, token_user->User.Sid, user_name, &user_name_size, domain_name, &domain_name_size, &sid_type) && GetLastError () == ERROR_NONE_MAPPED)
+    {
+      strcpy (user_name, "NONE_MAPPED");
+      strcpy (domain_name, "NONE_MAPPED");
+    }
+
+  free (token_user);
+  CloseHandle (process_token);
+}
+
+static unsigned long get_uid_from_string_sid(char *string_sid)
+{
+  char *uid_ptr;
+  char *ptr;
+
+  uid_ptr = strrchr (string_sid, '-');
+  if (!uid_ptr)
+    return 0;
+
+  uid_ptr++;
+
+  for (ptr = uid_ptr; *ptr; ptr++)
+    if (*ptr < '0' || *ptr > '9')
+      return 0;
+
+  return strtoul (uid_ptr, NULL, 10);
+}
+
+void
+OS_get_table()
+{
+  HANDLE proc;
+  HANDLE snapshot;
+  PROCESSENTRY32 proc_entry;
+  FILETIME ct, et, kt, ut;
+  char string_sid[184];
+  char user_name[256];
+  char domain_name[256];
+  unsigned long uid;
+  long start_time;
+
+  if (!init_win_result)
+    return;
+
+  snapshot = myCreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
+  if (!snapshot)
+    return;
+
+  proc_entry.dwSize = sizeof (proc_entry);
+  if (myProcess32First (snapshot, &proc_entry))
+    do
+      {
+        uid = 0;
+        start_time = 0;
+
+        proc = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, proc_entry.th32ProcessID);
+        if (proc)
+          {
+            if (GetProcessTimes (proc, &ct, &et, &kt, &ut))
+              start_time = to_time_t (&ct);
+            get_process_owner (proc, string_sid, user_name, domain_name);
+            CloseHandle (proc);
+          }
+
+        uid = get_uid_from_string_sid (string_sid);
+
+        bless_into_proc ("pppslsss", Fields,
+          uid,
+          proc_entry.th32ProcessID,
+          proc_entry.th32ParentProcessID,
+          proc_entry.szExeFile,
+          start_time,
+          string_sid,
+          user_name,
+          domain_name
+        );
+      }
+    while (myProcess32Next (snapshot, &proc_entry));
+
+  CloseHandle (snapshot);
 }
 
 #endif
