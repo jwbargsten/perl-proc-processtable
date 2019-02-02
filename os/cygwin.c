@@ -140,7 +140,7 @@ init_win ()
 #define NSPERSEC 10000000LL
 
 /* Convert a Win32 time to "UNIX" format. */
-long __stdcall
+static long
 to_time_t (FILETIME *ptr)
 {
   /* A file time is the number of 100ns since jan 1 1601
