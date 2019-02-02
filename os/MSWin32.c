@@ -29,12 +29,6 @@ details. */
 
 #include "os/MSWin32.h"
 
-typedef BOOL (WINAPI *ENUMPROCESSMODULES)(
-  HANDLE hProcess,      // handle to the process
-  HMODULE * lphModule,  // array to receive the module handles
-  DWORD cb,             // size of the array
-  LPDWORD lpcbNeeded    // receives the number of bytes returned
-);
 
 typedef DWORD (WINAPI *GETMODULEFILENAME)(
   HANDLE hProcess,
@@ -56,25 +50,12 @@ typedef BOOL (WINAPI *PROCESSWALK)(
 
 typedef struct external_pinfo external_pinfo;
 
-ENUMPROCESSMODULES myEnumProcessModules;
 GETMODULEFILENAME myGetModuleFileNameEx;
 CREATESNAPSHOT myCreateToolhelp32Snapshot;
 PROCESSWALK myProcess32First;
 PROCESSWALK myProcess32Next;
 
 static int init_win_result = FALSE;
-
-static BOOL WINAPI dummyprocessmodules (
-  HANDLE hProcess,      // handle to the process
-  HMODULE * lphModule,  // array to receive the module handles
-  DWORD cb,             // size of the array
-  LPDWORD lpcbNeeded    // receives the number of bytes returned
-)
-{
-  lphModule[0] = (HMODULE) *lpcbNeeded;
-  *lpcbNeeded = 1;
-  return 1;
-}
 
 static DWORD WINAPI GetModuleFileNameEx95 (
   HANDLE hProcess,
@@ -120,9 +101,8 @@ init_win ()
       h = LoadLibrary ("psapi.dll");
       if (!h)
 	return 0;
-      myEnumProcessModules = (ENUMPROCESSMODULES) GetProcAddress (h, "EnumProcessModules");
       myGetModuleFileNameEx = (GETMODULEFILENAME) GetProcAddress (h, "GetModuleFileNameExA");
-      if (!myEnumProcessModules || !myGetModuleFileNameEx)
+      if (!myGetModuleFileNameEx)
 	return 0;
       return 1;
     }
@@ -134,7 +114,6 @@ init_win ()
   if (!myCreateToolhelp32Snapshot || !myProcess32First || !myProcess32Next)
     return 0;
 
-  myEnumProcessModules = dummyprocessmodules;
   myGetModuleFileNameEx = GetModuleFileNameEx95;
   return 1;
 }
@@ -172,7 +151,6 @@ OS_get_table()
   int pid;
   char *pstate;
   char pname[MAX_PATH];
-  HMODULE hm[1000];
   char uname[128];
   char *fields;
 
@@ -211,16 +189,12 @@ OS_get_table()
 	}
       else if (query == CW_GETPINFO)
 	{
-	  DWORD n;
 	  FILETIME ct, et, kt, ut;
 	  HANDLE h = OpenProcess (PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
 	  			  FALSE, p->dwProcessId);
 	  if (!h)
 	    continue;
-	  n = p->dwProcessId;
-	  if (!myEnumProcessModules (h, hm, sizeof (hm), &n))
-	    n = 0;
-	  if (!n || !myGetModuleFileNameEx (h, hm[0], pname, MAX_PATH))
+	  if (!myGetModuleFileNameEx (h, myProcess32First ? p->dwProcessId : NULL, pname, MAX_PATH))
 	    strcpy (pname, "*** unknown ***");
 	  if (GetProcessTimes (h, &ct, &et, &kt, &ut))
 	    p->start_time = to_time_t (&ct);
