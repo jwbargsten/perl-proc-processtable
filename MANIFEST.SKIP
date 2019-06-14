@@ -1,31 +1,30 @@
-^clean.pl
-^build.pl
-^release.pl
-^git
-^htdocs
-^dist.ini
-^release
-^tidyall.ini
-^weaver.ini
-^.tidyall.d
+# Top-level filter (only include the following...)
+^(?!(?:script|examples|lib|inc|t|xt|maint)/|(?:(?:Makefile|Build)\.PL|README|LICENSE|MANIFEST|Changes|META\.(?:yml|json))$)
 
-# pod2html files
-\.pm\.html
+# Avoid version control files.
+\bRCS\b
+\bCVS\b
+,v$
+\B\.svn\b
+\b_darcs\b
+# (.git or .hg only in top-level, hence it's blocked above)
 
-# Backup files, etc.
+# Avoid temp and backup files.
 ~$
-(^|/)#
-(^|/)\.
+\.tmp$
+\.old$
 \.bak$
-\.tar\.gz$
+\..*?\.sw[po]$
+\#$
+\b\.#
 
-# MakeMaker cruft
-Makefile$
-^Makefile.old$
-^blib
-^MANIFEST.SKIP
-MYMETA.*
-^OS.c
-^*.c
-^*.o
-^*.patch
+# avoid OS X finder files
+\.DS_Store$
+
+# ditto for Windows
+\bdesktop\.ini$
+\b[Tt]humbs\.db$
+
+# Avoid patch remnants
+\.orig$
+\.rej$

@@ -19,3 +19,4 @@ release
 tmp
 z-backup
 *.patch
+blib/
