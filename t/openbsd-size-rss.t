@@ -7,7 +7,7 @@ use Test::More;
 use Data::Dumper;
 
 BEGIN {
-  if ( $^O ne 'openbsd' ) {
+  if ($^O ne 'openbsd') {
     plan skip_all => 'OpenBSD-specific tests';
   }
 
@@ -27,26 +27,22 @@ SKIP: {
   my $pid = fork;
   die "cannot fork" unless defined $pid;
 
-  if ( $pid == 0 ) {
+  if ($pid == 0) {
     #child
     sleep 10000;
   } else {
     #main
     sleep 1;
-    my ($ps) = grep {/^$pid\s+/} map { chomp; s/^\s*//; $_ } `ps ww`;
-    diag "process ($pid): $ps";
 
-    my $pstmp = `ps -p $pid -o vsz,rss`;
-    my (@lines) = split '\n', $pstmp;
-    my (@parts) = split /\s+/, $lines[1];
-    my $ps_vsize = $parts[0] * 1024;
-    my $ps_rss   = $parts[1] * 1024;
+    my ($pstmp) = grep {/^$pid\s+/} map { chomp; s/^\s*//; $_ } `ps -o pid,vsz,rss`;
+    my ($ps_pid, $ps_vsize, $ps_rss) = split /\s+/, $pstmp;
+    my $ps_vsize *= 1024;
+    my $ps_rss   *= 1024;
 
-    my $t   = Proc::ProcessTable->new;
+    my $t = Proc::ProcessTable->new;
     my ($p) = grep { $_->{pid} == $pid } @{ $t->table };
-    is( $p->{size}, $ps_vsize, "Process size = ps vsz" );
-    is( $p->{rss},  $ps_rss,   "Process rss  = ps rss" );
-    diag "process info: " . Dumper($p);
+    is($p->{size}, $ps_vsize, "Process size = ps vsz");
+    is($p->{rss},  $ps_rss,   "Process rss  = ps rss");
     kill 9, $pid;
   }
 }

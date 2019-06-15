@@ -30,14 +30,11 @@ SKIP: {
   } else {
     #main
     sleep 1;
-    my ($ps) = grep {/^$pid\s+/} map { chomp; s/^\s*//; $_ } `ps ww`;
-    diag "process ($pid): $ps";
 
     my $t           = Proc::ProcessTable->new;
     my $cmnd_quoted = quotemeta('(ib_fmr(mlx4_0))');
     my ($p) = grep { $_->{pid} == $pid } @{ $t->table };
     like( $p->{cmndline}, qr/$cmnd_quoted/, "odd process commandline bugfix ($cmnd_quoted)" );
-    diag "process info: " . Dumper($p);
     kill 9, $pid;
   }
 }
