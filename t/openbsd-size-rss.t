@@ -18,7 +18,7 @@ SKIP: {
   $0 = "PROC_PROCESSTABLE_TEST_CMD";
   sleep(1);
 
-  my ($ps) = grep {/^$$\s+/} map { chomp; s/^\s*//; $_ } `ps ww`;
+  my ($ps) = grep {/^$$\s+/} map { chomp; s/^\s*//; $_ } `ps xww`;
   skip 'Cannot set process name', 1
     unless ($ps && $ps =~ /PROC_PROCESSTABLE_TEST_CMD/);
 
@@ -34,7 +34,7 @@ SKIP: {
     #main
     sleep 1;
 
-    my ($pstmp) = grep {/^$pid\s+/} map { chomp; s/^\s*//; $_ } `ps -o pid,vsz,rss`;
+    my ($pstmp) = grep {/^$pid\s+/} map { chomp; s/^\s*//; $_ } `ps xo pid,vsz,rss`;
     my ($ps_pid, $ps_vsize, $ps_rss) = split /\s+/, $pstmp;
     my $ps_vsize *= 1024;
     my $ps_rss   *= 1024;
