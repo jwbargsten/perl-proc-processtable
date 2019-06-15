@@ -20,3 +20,10 @@ tmp
 z-backup
 *.patch
 blib/
+Makefile.old
+OS.o
+ProcessTable.bs
+ProcessTable.c
+ProcessTable.exp
+ProcessTable.o
+pm_to_blib
