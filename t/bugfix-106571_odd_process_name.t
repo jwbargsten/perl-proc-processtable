@@ -3,7 +3,7 @@ use Test::More;
 use Data::Dumper;
 
 BEGIN {
-  if ( $^O eq 'cygwin' ) {
+  if ($^O eq 'cygwin') {
     plan skip_all => 'Test irrelevant on cygwin';
   }
 
@@ -14,8 +14,9 @@ SKIP: {
   $0 = "PROC_PROCESSTABLE_TEST_CMD";
   sleep(1);
 
+  my ($ps) = grep {/^$$\s+/} map { chomp; s/^\s*//; $_ } `ps ww`;
   skip 'Cannot set process name', 1
-    unless ( `ps hwwp $$` =~ /PROC_PROCESSTABLE_TEST_CMD/ );
+    unless ($ps && $ps =~ /PROC_PROCESSTABLE_TEST_CMD/);
 
   # From Joelle Maslak: Can't set a process name to a blank name on
   # OpenBSD, so this test is not relevant.  From reading perlvar, it
@@ -23,28 +24,29 @@ SKIP: {
   # looking for the OpenBSD operating system, we see if the command line
   # starts with "perl:" as it does on OpenBSD (and presumably other
   # BSDs).  See OpenBSD's setproctitle(3) for information on what at
-  # least OpenBSD allows: 
+  # least OpenBSD allows:
   #   https://man.openbsd.org/setproctitle.3
   skip 'Likely *BSD system, can\'t blank process name', 1
-    unless ( `ps hwwp $$` =~ /^perl: / );
+    unless ($ps =~ /^perl: /);
 
   $SIG{CHLD} = 'IGNORE';
 
   my $pid = fork;
   die "cannot fork" unless defined $pid;
 
-  if ( $pid == 0 ) {
+  if ($pid == 0) {
     #child
     $0 = '';
     sleep 10000;
   } else {
     #main
     sleep 1;
-    diag "process: " . `ps hwwp $pid`;
+    my ($ps) = grep {/^$pid\s+/} map { chomp; s/^\s*//; $_ } `ps ww`;
+    diag "process ($pid): $ps";
     my $t           = Proc::ProcessTable->new;
     my $cmnd_quoted = '';
     my ($p) = grep { $_->{pid} == $pid } @{ $t->table };
-    is( $p->{cmndline}, $cmnd_quoted, "odd process commandline bugfix ($cmnd_quoted)" );
+    is($p->{cmndline}, $cmnd_quoted, "odd process commandline bugfix ($cmnd_quoted)");
     diag "process info: " . Dumper($p);
     kill 9, $pid;
   }

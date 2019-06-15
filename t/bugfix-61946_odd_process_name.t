@@ -14,8 +14,9 @@ SKIP: {
   $0 = "PROC_PROCESSTABLE_TEST_CMD";
   sleep(1);
 
+  my ($ps) = grep {/^$$\s+/} map { chomp; s/^\s*//; $_ } `ps ww`;
   skip 'Cannot set process name', 1
-    unless ( `ps hwwp $$` =~ /PROC_PROCESSTABLE_TEST_CMD/ );
+    unless ($ps && $ps =~ /PROC_PROCESSTABLE_TEST_CMD/);
 
   $SIG{CHLD} = 'IGNORE';
 
@@ -29,7 +30,9 @@ SKIP: {
   } else {
     #main
     sleep 1;
-    diag "process: " . `ps hwwp $pid`;
+    my ($ps) = grep {/^$pid\s+/} map { chomp; s/^\s*//; $_ } `ps ww`;
+    diag "process ($pid): $ps";
+
     my $t           = Proc::ProcessTable->new;
     my $cmnd_quoted = quotemeta('(ib_fmr(mlx4_0))');
     my ($p) = grep { $_->{pid} == $pid } @{ $t->table };
