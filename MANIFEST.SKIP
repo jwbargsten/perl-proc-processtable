@@ -1,5 +1,5 @@
 # Top-level filter (only include the following...)
-^(?!(?:script|examples|hints|lib|inc|os|t|xt|maint|contrib)/|(?:(?:Makefile|Build).PL|ProcessTable.xs|README|LICENSE|MANIFEST|Changes|META.(?:yml|json))$)
+^(?!(?:script|examples|hints|lib|inc|os|t|xt|maint|contrib)/|(?:(?:Makefile|Build).PL|ProcessTable.xs|README.*|LICENSE|MANIFEST|Changes|META.(?:yml|json))$)
 
 
 # Avoid version control files.
