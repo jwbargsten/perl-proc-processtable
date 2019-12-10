@@ -1,17 +1,27 @@
-language: perl
-perl:
-  - "5.8"
-  - "5.8.7"
-  - "5.10"
-  - "5.12"
-  - "5.14"
-  - "5.16"
-  - "5.18"
-  - "5.20"
-  - "5.22"
-  - "5.24"
-  - "dev"
-script: 'perl Makefile.PL; make test'
+matrix:
+  include:
+    - { os: linux, language: perl, perl: "5.8"   }
+    - { os: linux, language: perl, perl: "5.8.7" }
+    - { os: linux, language: perl, perl: "5.10"  }
+    - { os: linux, language: perl, perl: "5.12"  }
+    - { os: linux, language: perl, perl: "5.14"  }
+    - { os: linux, language: perl, perl: "5.16"  }
+    - { os: linux, language: perl, perl: "5.18"  }
+    - { os: linux, language: perl, perl: "5.20"  }
+    - { os: linux, language: perl, perl: "5.22"  }
+    - { os: linux, language: perl, perl: "5.24"  }
+    - { os: linux, language: perl, perl: "dev"   }
+    - { os: osx, language: perl }
+    - { os: windows, language: shell }
+install:
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then
+      cinst -y StrawberryPerl;
+      export PATH="/c/strawberry/perl/bin:/c/strawberry/perl/site/bin:/c/strawberry/c/bin:$PATH";
+      export MAKEPRG="gmake";
+    else
+      export MAKEPRG="make";
+    fi
+script: 'perl Makefile.PL; $MAKEPRG test'
 branches:
   only:
     - master
