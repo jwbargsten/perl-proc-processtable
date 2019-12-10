@@ -152,6 +152,7 @@ sub _get_tty_list
 {
   my ($self) = @_;
   undef %Proc::ProcessTable::TTYDEVS;
+  return unless -d "/dev";
   find({ wanted => 
        sub{
      $File::Find::prune = 1 if -d $_ && ! -x $_;
