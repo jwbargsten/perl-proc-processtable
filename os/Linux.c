@@ -537,6 +537,7 @@ static void fixup_stat_values(char *format_str, struct procstat* prs)
             prs->state = get_string(UWAIT);
             break;
         case 'T':
+        case 'H': /* GNU Hurd HALTED state */
             prs->state = get_string(STOP);
             break;
         case 'x':
