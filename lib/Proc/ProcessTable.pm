@@ -155,7 +155,7 @@ sub _get_tty_list
   return unless -d "/dev";
   find({ wanted => 
        sub{
-     $File::Find::prune = 1 if -d $_ && ! -x $_;
+     $File::Find::prune = 1 if -d $_ && ( ! -x $_ || $_ eq "/dev/.lxc");
      my($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
         $atime,$mtime,$ctime,$blksize,$blocks) = stat($File::Find::name);
      $Proc::ProcessTable::TTYDEVS{$rdev} = $File::Find::name
