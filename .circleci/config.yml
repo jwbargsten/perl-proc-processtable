@@ -1,13 +1,28 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
-# Use a package of configuration called an orb.
 orbs:
-  # Declare a dependency on the welcome-orb
-  welcome: circleci/welcome-orb@0.4.1
-# Orchestrate or schedule a set of jobs
+  perl: circleci/perl@1.0.0
 workflows:
-  # Name the workflow "welcome"
-  welcome:
-    # Run the welcome/run job in its own container
+  main:
     jobs:
-      - welcome/run
+      - perl/build:
+          codecov: true
+          save-to-artifacts: true
+          save-to-workspace: true
+      - perl/test-linux:
+          matrix:
+            parameters:
+              perl-version:
+                - '5.10'
+                # - '5.12'
+                # - '5.14'
+                # - '5.16'
+                # - '5.18'
+                # - '5.20'
+                # - '5.22'
+                # - '5.24'
+                # - '5.26'
+                # - '5.28'
+                # - '5.30'
+          requires:
+            - perl/build
+
