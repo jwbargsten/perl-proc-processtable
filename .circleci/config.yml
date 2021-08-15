@@ -1,28 +1,56 @@
 version: 2.1
-orbs:
-  perl: circleci/perl@1.0.0
 workflows:
   main:
     jobs:
-      - perl/build:
-          codecov: true
-          save-to-artifacts: true
-          save-to-workspace: true
-      - perl/test-linux:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
+          save-to-artifacts: false
+          save-to-workspace: false
           matrix:
             parameters:
               perl-version:
                 - '5.10'
-                # - '5.12'
-                # - '5.14'
-                # - '5.16'
-                # - '5.18'
-                # - '5.20'
-                # - '5.22'
-                # - '5.24'
-                # - '5.26'
-                # - '5.28'
-                # - '5.30'
-          requires:
-            - perl/build
+                - '5.12'
+                - '5.14'
+                - '5.16'
+                - '5.18'
+                - '5.20'
+                - '5.22'
+                - '5.24'
+                - '5.26'
+                - '5.28'
+                - '5.30'
 
+
+jobs:
+  build:
+    description: |
+      Builds and test the Perl distribution.
+    docker:
+    - image: perldocker/perl-tester:<< parameters.perl-version >>
+    parameters:
+      perl-version:
+        default: "5.32"
+        description: The Perl version we want to do the build and test with
+        type: string
+      save-to-artifacts:
+        default: false
+        description: Should the resulting build be saved to the artifacts for this
+          pipeline?
+        type: boolean
+      save-to-workspace:
+        default: false
+        description: Should the resulting build be stored in the CircleCI workspace
+          for this pipeline so that other jobs in the pipeline can test it?
+        type: boolean
+    steps:
+    - checkout
+    - run:
+        command: |
+          perl Makefile.PL
+          make
+          make test
+        name: Build and Test Distribution
