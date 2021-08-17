@@ -334,17 +334,18 @@ static bool get_proc_stat(char *pid, char *format_str, struct procstat* prs,
         goto done;
     }
 
+    int max_comm_len = sizeof(prs->comm)-1;
 
     int comm_len = close_paren - open_paren - 1;
-    if(comm_len > 15) {
-      comm_len = 15
+    if(comm_len > max_comm_len) {
+      comm_len = max_comm_len;
     }
     if(comm_len == 0) {
       goto done;
     }
 
-    ppt_warn("sizeof: %d, comm_len: %d)", sizeof(prs->comm), comm_len);
-    strlcpy(prs->comm, open_paren + 1, 16)
+    strncpy(prs->comm, open_paren + 1, max_comm_len);
+    prs->comm[max_comm_len+1] = '\0';
 
     /* address at which we pickup again, after the ')'
      * NOTE: we don't bother checking bounds since strchr didn't return NULL
