@@ -343,8 +343,6 @@ static bool get_proc_stat(char *pid, char *format_str, struct procstat* prs,
     if(comm_len > 0) {
       strncpy(prs->comm, open_paren + 1, comm_esize);
       prs->comm[comm_esize] = '\0';
-    } else {
-      prs->comm[0] = '\0';
     }
 
 
