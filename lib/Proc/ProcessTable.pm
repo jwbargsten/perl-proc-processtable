@@ -268,7 +268,7 @@ to help make this work on your OS.
 
 =head1 AUTHOR
 
-D. Urist, durist@frii.com
+J. Bargsten, D. Urist
 
 =head1 SEE ALSO
 
