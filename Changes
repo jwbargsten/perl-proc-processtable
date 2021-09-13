@@ -1,5 +1,10 @@
 Revision history for Perl extension Proc::ProcessTable.
 
+0.62 2021-09-13
+  - updated Changes file to stick to perl5-module-meta recommendations
+  - changed version scheme back to 2 digits after major version.
+  - added J. Bargsten as author
+
 0.612 2021-09-08
   - regression issue: allow (again) processes with empty names on Linux
 
