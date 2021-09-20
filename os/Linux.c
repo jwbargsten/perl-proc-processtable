@@ -363,39 +363,39 @@ static bool get_proc_stat(char *pid, char *format_str, struct procstat *prs,
 
   /* scrape the remaining values */
   result = sscanf(stat_cont,
-                  " %c" /*  state */
-                  " %d" /*  ppid */
-                  " %d" /*  pgrp */
-                  " %d" /*  sid */
-                  " %d" /*  tty */
-                  " %d" /*  tty_pgid (dummy) */
-                  " %u" /*  flags */
-                  " %lu" /* minflt */
-                  " %lu" /* cminflt */
-                  " %lu" /* majflt */
-                  " %lu" /* cmajflt */
-                  " %llu" /* utime */
-                  " %llu" /* stime */
-                  " %llu" /* cutime */
-                  " %lld" /* cstime */
-                  " %ld" /* priority */
-                  " %ld" /* nice (dummy) */
-                  " %ld" /* num_threads (dummy) */
-                  " %d" /* itrealvalue (dummy) */
-                  " %llu" /* start_time */
-                  " %lu" /* vsize */
-                  " %ld" /* rss */
-                  " %ld" /* rsslim */
-                  " %lu" /* start_code (dummy) */
-                  " %lu" /* end_code (dummy) */
-                  " %lu" /* start_stack (dummy) */
-                  " %lu" /* esp (dummy) */
-                  " %lu" /* eip (dummy) */
-                  " %lu" /* pending (dummy) */
-                  " %lu" /* blocked (dummy) */
-                  " %lu" /* sigign (dummy) */
-                  " %lu" /* sigcatch (dummy) */
-                  " %lu" /* wchan (obsolete) */
+                  " %c"                        /*  state */
+                  " %d"                        /*  ppid */
+                  " %d"                        /*  pgrp */
+                  " %d"                        /*  sid */
+                  " %d"                        /*  tty */
+                  " %d"                        /*  tty_pgid (dummy) */
+                  " %u"                        /*  flags */
+                  " %lu"                       /* minflt */
+                  " %lu"                       /* cminflt */
+                  " %lu"                       /* majflt */
+                  " %lu"                       /* cmajflt */
+                  " %llu"                      /* utime */
+                  " %llu"                      /* stime */
+                  " %llu"                      /* cutime */
+                  " %lld"                      /* cstime */
+                  " %ld"                       /* priority */
+                  " %ld"                       /* nice (dummy) */
+                  " %ld"                       /* num_threads (dummy) */
+                  " %d"                        /* itrealvalue (dummy) */
+                  " %llu"                      /* start_time */
+                  " %lu"                       /* vsize */
+                  " %ld"                       /* rss */
+                  " %ld"                       /* rsslim */
+                  " %lu"                       /* start_code (dummy) */
+                  " %lu"                       /* end_code (dummy) */
+                  " %lu"                       /* start_stack (dummy) */
+                  " %lu"                       /* esp (dummy) */
+                  " %lu"                       /* eip (dummy) */
+                  " %lu"                       /* pending (dummy) */
+                  " %lu"                       /* blocked (dummy) */
+                  " %lu"                       /* sigign (dummy) */
+                  " %lu"                       /* sigcatch (dummy) */
+                  " %lu"                       /* wchan (obsolete) */
                   ,
                   &prs->state_c,               /* %c */
                   &prs->ppid, &prs->pgrp,      /* %d %d */

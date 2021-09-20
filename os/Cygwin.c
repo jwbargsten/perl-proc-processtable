@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include <sys/vfs.h>    /* statfs */
 /* glibc only goodness */
-#include <obstack.h>    /* glibc's handy obstacks */
+#include "obstack.h"    /* glibc's handy obstacks */
 /* pthreads */
 #include <pthread.h>    /* pthread_once */
 
