@@ -3,7 +3,7 @@ use Test::More;
 use Data::Dumper;
 
 BEGIN {
-  if ( $^O eq 'cygwin' ) {
+  if ( $^O eq 'cygwin_' ) {
     plan skip_all => 'Test irrelevant on cygwin';
   }
 

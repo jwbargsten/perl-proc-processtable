@@ -22,7 +22,7 @@
 #define obstack_chunk_alloc     malloc
 #define obstack_chunk_free      free
 
-#include "os/Linux.h"
+#include "os/Cygwin.h"
 
 /* NOTE: Before this was actually milliseconds even though it said microseconds, now it is correct. */
 #define JIFFIES_TO_MICROSECONDS(x) (((x)*1e6)/system_hertz)
@@ -74,7 +74,7 @@ static void init_static_vars()
   /* find hertz size, I'm hoping this is gotten from elf note AT_CLKTCK */
   system_hertz = sysconf(_SC_CLK_TCK);
 
-/* find boot time */
+  /* find boot time */
   /* read /proc/stat in */
   if ((file_text = read_file("stat", NULL, &file_len, &mem_pool)) == NULL)
     goto fail;
@@ -100,7 +100,7 @@ static void init_static_vars()
   if (boot_time == -1)
     goto fail;
 
-/* find total number of system pages */
+  /* find total number of system pages */
   /* read /proc/meminfo */
   if ((file_text = read_file("meminfo", NULL, &file_len, &mem_pool)) == NULL)
     goto fail;
@@ -121,8 +121,11 @@ static void init_static_vars()
   obstack_free(&mem_pool, file_text);
 
   /* did we scrape the number of pages successfuly? */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   if (total_memory == -1)
     goto fail;
+#pragma GCC diagnostic pop
 
   /* initialize system hertz value */
 
@@ -131,7 +134,7 @@ static void init_static_vars()
   return;
 
   /* mark failure and cleanup allocated resources */
-fail:
+ fail:
   obstack_free(&mem_pool, NULL);
   init_failed = true;
 }
@@ -351,49 +354,39 @@ static bool get_proc_stat(char *pid, char *format_str, struct procstat* prs,
    * thus the NULL terminator will be at least close_paren+1, which is ok */
   stat_cont = close_paren + 1;
 
-  /* scape the remaining values */
+  /* scrape the remaining values */
   result = sscanf(stat_cont,
-                  " %c"
-                  " %d"
-                  " %d"
-                  " %d"
-                  " %d"
-                  " %d"
-                  " %u"
-                  " %lu"
-                  " %lu"
-                  " %lu"
-                  " %lu"
-                  " %llu"
-                  " %llu"
-                  " %llu"
-                  " %lld"
-                  " %ld"
-                  " %ld"
-                  " %ld"
-                  " %d"
-                  " %llu"
-                  " %lu"
-                  " %ld"
-                  " %ld"
-                  " %lu"
-                  " %lu"
-                  " %lu"
-                  " %lu"
-                  " %lu"
-                  " %lu"
-                  " %lu"
-                  " %lu"
-                  " %lu"
-                  " %lu"
+                  " %c"   /*  3 state*/
+                  " %d"   /*  4 ppid */
+                  " %d"   /*  5 pgrp */
+                  " %d"   /*  6 sid  */
+                  " %d"   /*  7 tty */
+                  " %d"   /*  8 tty_pgid */
+                  " %u"   /*  9 flags */
+                  " %lu"  /* 10 minflt */
+                  " %lu"  /* 11 cminflt */
+                  " %lu"  /* 12 majflt */
+                  " %lu"  /* 13 cmajflt */
+                  " %llu" /* 14 utime */
+                  " %llu" /* 15 stime */
+                  " %lld"  /* 16 cutime */
+                  " %lld"  /* 17 cstime */
+                  " %ld"  /* 18 priority */
+                  " %ld"  /* 19 nice */
+                  " %ld"  /* 20 num_threads */
+                  " %d"   /* 21 itrealvalue */
+                  " %llu" /* 22 starttime */
+                  " %lu"  /* 23 vsize */
+                  " %ld"  /* 24 rss */
+                  " %ld"  /* 25 rsslim */
                   ,
-                  &prs->state_c,                  // %c
-                  &prs->ppid, &prs->pgrp,         // %d %d
-                  &prs->sid,                      // %d
+                  &prs->state_c,                  /* %c */
+                  &prs->ppid, &prs->pgrp,         /* %d %d */
+                  &prs->sid,                      /* %d */
                   &prs->tty, &dummy_i,            /* tty, tty_pgid */
-                  &prs->flags,                    // %u
+                  &prs->flags,                    /* %u */
                   &prs->minflt, &prs->cminflt,
-                  &prs->majflt, &prs->cmajflt, // %lu %lu %lu %lu
+                  &prs->majflt, &prs->cmajflt,    /* %lu %lu %lu %lu */
                   &prs->utime, &prs->stime,
                   &prs->cutime, &prs->cstime,
                   &prs->priority,
@@ -402,21 +395,16 @@ static bool get_proc_stat(char *pid, char *format_str, struct procstat* prs,
                   &dummy_i,                       /* timeout obsolete */
                   &prs->start_time,
                   &prs->vsize, &prs->rss,
-                  &dummy_l,
-                  &dummy_l, &dummy_l,
-                  &dummy_l,
-                  &dummy_l, &dummy_l,
-                  &dummy_l, &dummy_l, &dummy_l, &dummy_l,
-                  &prs->wchan);
+                  &dummy_l);
 
-  /* 33 items in scanf's list... It's all or nothing baby */
-  if (result != 33) {
+  /* 23 items in scanf's list... It's all or nothing baby */
+  if (result != 23) {
     read_ok = false;
     goto done;
   }
 
   /* enable fields; F_STATE is not the range */
-  field_enable_range(format_str, F_PID, F_WCHAN);
+  field_enable_range(format_str, F_PID, F_RSS);
 
 done:
   obstack_free(mem_pool, stat_text);
@@ -505,49 +493,76 @@ static void get_proc_environ(char *pid, char *format_str, struct procstat* prs,
   field_enable(format_str, F_ENVIRON);
 }
 
+static void get_proc_winexename(char *pid, char *format_str, struct procstat* prs,
+                                struct obstack *mem_pool)
+{
+  char    *winexename_text;
+  off_t   winexename_len;
+
+  if ((winexename_text = read_file(pid, "winexename", &winexename_len, mem_pool)) == NULL)
+    return;
+
+  prs->winexename = winexename_text;
+  field_enable(format_str, F_WINEXENAME);
+}
+
+static void get_proc_winpid(char *pid, char *format_str, struct procstat* prs,
+                            struct obstack *mem_pool)
+{
+  char    *winpid_text;
+  off_t   winpid_len;
+  int     res;
+
+  if ((winpid_text = read_file(pid, "winpid", &winpid_len, mem_pool)) == NULL)
+    return;
+
+  res = sscanf( winpid_text, "%d", &prs->winpid );
+  if (res == 1)
+    field_enable(format_str, F_WINPID);
+
+  obstack_free(mem_pool, winpid_text);
+}
+
 static void get_proc_status(char *pid, char *format_str, struct procstat* prs,
                             struct obstack *mem_pool)
 {
-    char    *status_text, *loc;
-    off_t   status_len;
-    int     dummy_i;
+  char    *status_text, *loc;
+  off_t   status_len;
+  int     dummy_i;
 
-    if ((status_text = read_file(pid, "status", &status_len, mem_pool)) == NULL)
-        return;
+  if ((status_text = read_file(pid, "status", &status_len, mem_pool)) == NULL)
+    return;
 
-    loc = status_text;
+  loc = status_text;
 
-    /*
-     * get the euid, egid and so on out of /proc/$$/status
-     * where the 2 lines in which we are interested in are:
-     * [5] Uid:    500     500     500     500
-     * [6] Gid:    500     500     500     500
-     * added by scip
-     */
+  /*
+   * get the euid, egid and so on out of /proc/$$/status
+   * where the 2 lines in which we are interested in are:
+   * [5] Uid:    500     500     500     500
+   * [6] Gid:    500     500     500     500
+   * added by scip
+   */
 
-     for(loc = status_text; loc; loc = strchr(loc, '\n')) {
-        /* skip past the \n character */
-        if (loc != status_text)
-            loc++;
+  for(loc = status_text; loc; loc = strchr(loc, '\n')) {
+    /* skip past the \n character */
+    if (loc != status_text)
+      loc++;
 
-        if (strncmp(loc, "Uid:", 4) == 0) {
-            sscanf(loc + 4, " %d %d %d %d", &dummy_i, &prs->euid, &prs->suid, &prs->fuid);
-            field_enable_range(format_str, F_EUID, F_FUID);
-        } else if (strncmp(loc, "Gid:", 4) == 0) {
-            sscanf(loc + 4, " %d %d %d %d", &dummy_i, &prs->egid, &prs->sgid, &prs->fgid);
-            field_enable_range(format_str, F_EGID, F_FGID);
-        } else if (strncmp(loc, "TracerPid:", 10) == 0) {
-            sscanf(loc + 10, " %d", &prs->tracer);
-            field_enable(format_str, F_TRACER);
-        }
-
-        /* short circuit condition */
-        if (islower(format_str[F_EUID]) && islower(format_str[F_EGID]) && islower(format_str[F_TRACER]))
-            goto done;
+    if (strncmp(loc, "Uid:", 4) == 0) {
+      sscanf(loc + 4, " %d %d %d %d", &dummy_i, &prs->euid, &prs->suid, &prs->fuid);
+      field_enable_range(format_str, F_EUID, F_FUID);
+    } else if (strncmp(loc, "Gid:", 4) == 0) {
+      sscanf(loc + 4, " %d %d %d %d", &dummy_i, &prs->egid, &prs->sgid, &prs->fgid);
+      field_enable_range(format_str, F_EGID, F_FGID);
     }
 
-done:
-    obstack_free(mem_pool, status_text);
+    /* short circuit condition */
+    if (islower((int)format_str[F_EUID]) && islower((int)format_str[F_EGID]))
+      goto done;
+  }
+
+ done:
+  obstack_free(mem_pool, status_text);
 }
 
 
@@ -560,72 +575,51 @@ done:
  */
 static void fixup_stat_values(char *format_str, struct procstat* prs)
 {
-    /* set the state pointer to the right (const) string */
-    switch (prs->state_c) {
-        case 'S':
-            prs->state = get_string(SLEEP);
-            break;
-        case 'W':
-            prs->state = get_string(WAIT); /*Waking state.  Could be mapped to WAKING, but would break backward compatibility */
-            break;
-        case 'R':
-            prs->state = get_string(RUN);
-            break;
-        case 'I':
-            prs->state = get_string(IDLE);
-            break;
-        case 'Z':
-            prs->state = get_string(DEFUNCT);
-            break;
-        case 'D':
-            prs->state = get_string(UWAIT);
-            break;
-        case 'T':
-        case 'H': /* GNU Hurd HALTED state */
-            prs->state = get_string(STOP);
-            break;
-        case 'x':
-            prs->state = get_string(DEAD);
-            break;
-        case 'X':
-            prs->state = get_string(DEAD);
-            break;
-        case 'K':
-            prs->state = get_string(WAKEKILL);
-            break;
-        case 't':
-            prs->state = get_string(TRACINGSTOP);
-            break;
-        case 'P':
-            prs->state = get_string(PARKED);
-            break;
-        /* unknown state, state is already set to NULL */
-        default:
-            ppt_warn("Ran into unknown state (hex char: %x)", (int) prs->state_c);
-            goto skip_state_format;
-    }
+  /* set the state pointer to the right (const) string */
+  switch (prs->state_c) {
+  case 'S':
+    prs->state = get_string(SLEEP);
+    break;
+  case 'O':
+  case 'R':
+    prs->state = get_string(RUN);
+    break;
+  case 'Z':
+    prs->state = get_string(DEFUNCT);
+    break;
+  case 'D':
+    prs->state = get_string(UWAIT);
+    break;
+  case 'T':
+    prs->state = get_string(STOP);
+    break;
+    /* unknown state, state is already set to NULL */
+  default:
+    ppt_warn("Ran into unknown state (hex char: %x)", (int) prs->state_c);
+    goto skip_state_format;
+  }
 
-    field_enable(format_str, F_STATE);
+  field_enable(format_str, F_STATE);
 
-skip_state_format:
+ skip_state_format:
 
-    prs->start_time = (prs->start_time / system_hertz) + boot_time;
+  prs->start_time = (prs->start_time / system_hertz) + boot_time;
 
-    /* fix time */
+  /* fix time */
 
-    prs->stime      = JIFFIES_TO_MICROSECONDS(prs->stime);
-    prs->utime      = JIFFIES_TO_MICROSECONDS(prs->utime);
-    prs->cstime     = JIFFIES_TO_MICROSECONDS(prs->cstime);
-    prs->cutime     = JIFFIES_TO_MICROSECONDS(prs->cutime);
+  prs->stime      = JIFFIES_TO_MICROSECONDS(prs->stime);
+  prs->utime      = JIFFIES_TO_MICROSECONDS(prs->utime);
+  prs->cstime     = JIFFIES_TO_MICROSECONDS(prs->cstime);
+  prs->cutime     = JIFFIES_TO_MICROSECONDS(prs->cutime);
 
-    /* derived time values */
-    prs->time   = prs->utime    + prs->stime;
-    prs->ctime  = prs->cutime   + prs->cstime;
+  /* derived time values */
+  prs->time   = prs->utime    + prs->stime;
+  prs->ctime  = prs->cutime   + prs->cstime;
 
-    field_enable_range(format_str, F_TIME, F_CTIME);
+  field_enable_range(format_str, F_TIME, F_CTIME);
 
-    /* fix rss to be in bytes (returned from kernel in pages) */
-    prs->rss    *= page_size;
+  /* fix rss to be in bytes (returned from kernel in pages) */
+  prs->rss    *= page_size;
 }
 
 /* calc_prec()
@@ -634,24 +628,24 @@ skip_state_format:
  */
 static void calc_prec(char *format_str, struct procstat *prs, struct obstack *mem_pool)
 {
-    int len;
-    /* calculate pctcpu - NOTE: This assumes the cpu time is in microsecond units!
-       multiplying by 1/1e6 puts all units back in seconds.  Then multiply by 100.0f to get a percentage.
-    */
+  int len;
+  /* calculate pctcpu - NOTE: This assumes the cpu time is in microsecond units!
+     multiplying by 1/1e6 puts all units back in seconds.  Then multiply by 100.0f to get a percentage.
+  */
 
-    float pctcpu = ( 100.0f * (prs->utime + prs->stime ) * 1/1e6 ) / (time(NULL) - prs->start_time);
+  float pctcpu = ( 100.0f * (prs->utime + prs->stime ) * 1/1e6 ) / (time(NULL) - prs->start_time);
 
-    len = snprintf(prs->pctcpu, LENGTH_PCTCPU, "%6.2f", pctcpu);
-    if( len >= LENGTH_PCTCPU ) {  ppt_warn("percent cpu truncated from %d, set LENGTH_PCTCPU to at least: %d)", len, len + 1); }
+  len = snprintf(prs->pctcpu, LENGTH_PCTCPU, "%6.2f", pctcpu);
+  if( len >= LENGTH_PCTCPU ) {  ppt_warn("percent cpu truncated from %d, set LENGTH_PCTCPU to at least: %d)", len, len + 1); }
 
 
-    field_enable(format_str, F_PCTCPU);
+  field_enable(format_str, F_PCTCPU);
 
-    /* calculate pctmem */
-    if (system_memory > 0) {
-        sprintf(prs->pctmem, "%3.2f", (float) prs->rss / system_memory * 100.f);
-        field_enable(format_str, F_PCTMEM);
-    }
+  /* calculate pctmem */
+  if (system_memory > 0) {
+    sprintf(prs->pctmem, "%3.2f", (float) prs->rss / system_memory * 100.f);
+    field_enable(format_str, F_PCTMEM);
+  }
 }
 
 /* is_pid()
@@ -661,84 +655,84 @@ static void calc_prec(char *format_str, struct procstat *prs, struct obstack *me
  */
 inline static bool is_pid(const char* str)
 {
-    for(; *str; str++) {
-        if (!isdigit(*str))
-            return false;
-    }
+  for(; *str; str++) {
+    if (!isdigit((int)*str))
+      return false;
+  }
 
-    return true;
+  return true;
 }
 
 inline static bool pid_exists(const char *str, struct obstack *mem_pool)
 {
-    char    *pid_dir_path = NULL;
-    int     result;
+  char    *pid_dir_path = NULL;
+  int     result;
 
-    obstack_printf(mem_pool, "/proc/%s", str);
-    obstack_1grow(mem_pool, '\0');
-    pid_dir_path = obstack_finish(mem_pool);
+  obstack_printf(mem_pool, "/proc/%s", str);
+  obstack_1grow(mem_pool, '\0');
+  pid_dir_path = obstack_finish(mem_pool);
 
-    /* directory exists? */
-    result = (access(pid_dir_path, F_OK) != -1);
+  /* directory exists? */
+  result = (access(pid_dir_path, F_OK) != -1);
 
-    obstack_free(mem_pool, pid_dir_path);
+  obstack_free(mem_pool, pid_dir_path);
 
-    return result;
+  return result;
 }
 
 void OS_get_table()
 {
-    /* dir walker storage */
-    DIR             *dir;
-    struct dirent   *dir_ent, *dir_result;
+  /* dir walker storage */
+  DIR             *dir;
+  struct dirent   *dir_ent, *dir_result;
 
-    /* all our storage is going to be here */
-    struct obstack  mem_pool;
+  /* all our storage is going to be here */
+  struct obstack  mem_pool;
 
-    /* container for scaped process values */
-    struct procstat *prs;
+  /* container for scraped process values */
+  struct procstat *prs;
 
-    /* string containing our local copy of format_str, elements will be
-     * lower cased if we are able to figure them out */
-    char            *format_str;
+  /* string containing our local copy of format_str, elements will be
+   * lower cased if we are able to figure them out */
+  char            *format_str;
 
-    /* initlize a small memory pool for this function */
-    obstack_init(&mem_pool);
+  /* initialize a small memory pool for this function */
+  obstack_init(&mem_pool);
 
-    /* put the dirent on the obstack, since it's rather large */
-    dir_ent = obstack_alloc(&mem_pool, sizeof(struct dirent));
+  /* put the dirent on the obstack, since it's rather large */
+  dir_ent = obstack_alloc(&mem_pool, sizeof(struct dirent));
 
-    if ((dir = opendir("/proc")) == NULL)
-        return;
+  if ((dir = opendir("/proc")) == NULL)
+    return;
 
-    /* Iterate through all the process entries (numeric) under /proc */
-    while(readdir_r(dir, dir_ent, &dir_result) == 0 && dir_result) {
+  /* Iterate through all the process entries (numeric) under /proc */
+  while(readdir_r(dir, dir_ent, &dir_result) == 0 && dir_result) {
 
-        /* Only look at this file if it's a proc id; that is, all numbers */
-        if(!is_pid(dir_result->d_name))
-            continue;
+    /* Only look at this file if it's a proc id; that is, all numbers */
+    if(!is_pid(dir_result->d_name))
+      continue;
 
-        /* allocate container for storing process values */
-        prs = obstack_alloc(&mem_pool, sizeof(struct procstat));
-        bzero(prs, sizeof(struct procstat));
+    /* allocate container for storing process values */
+    prs = obstack_alloc(&mem_pool, sizeof(struct procstat));
+    bzero(prs, sizeof(struct procstat));
 
-        /* intilize the format string */
-        obstack_printf(&mem_pool, "%s", get_string(STR_DEFAULT_FORMAT));
-        obstack_1grow(&mem_pool, '\0');
-        format_str = (char *) obstack_finish(&mem_pool);
+    /* initialize the format string */
+    obstack_printf(&mem_pool, "%s", get_string(STR_DEFAULT_FORMAT));
+    obstack_1grow(&mem_pool, '\0');
+    format_str = (char *) obstack_finish(&mem_pool);
 
-        /* get process' uid/guid */
-        get_user_info(dir_result->d_name, format_str, prs, &mem_pool);
+    /* get process' uid/guid */
+    get_user_info(dir_result->d_name, format_str, prs, &mem_pool);
 
-        /* scrape /proc/${pid}/stat */
-        if (get_proc_stat(dir_result->d_name, format_str, prs, &mem_pool) == false) {
-            /* did the pid directory go away mid flight? */
-            if (pid_exists(dir_result->d_name, &mem_pool) == false)
-                continue;
-        }
+    /* scrape /proc/${pid}/stat */
+    if (get_proc_stat(dir_result->d_name, format_str, prs, &mem_pool) == false) {
+      /* did the pid directory go away mid flight? */
+      if (pid_exists(dir_result->d_name, &mem_pool) == false)
+        continue;
+    }
 
-        /* correct values (times) found in /proc/${pid}/stat */
-        fixup_stat_values(format_str, prs);
+    /* correct values (times) found in /proc/${pid}/stat */
+    fixup_stat_values(format_str, prs);
 
     /* get process' cmndline */
     get_proc_cmndline(dir_result->d_name, format_str, prs, &mem_pool);
@@ -749,71 +743,74 @@ void OS_get_table()
     /* get process' environ */
     get_proc_environ(dir_result->d_name, format_str, prs, &mem_pool);
 
-        /* get process' cwd & exec values from the symblink */
-        eval_link(dir_result->d_name, "cwd", F_CWD, &prs->cwd, format_str,
-            &mem_pool);
-        eval_link(dir_result->d_name, "exe", F_EXEC, &prs->exec, format_str,
-            &mem_pool);
+    /* get process' cwd & exec values from the symblink */
+    eval_link(dir_result->d_name, "cwd", F_CWD, &prs->cwd, format_str,
+              &mem_pool);
+    eval_link(dir_result->d_name, "exe", F_EXEC, &prs->exec, format_str,
+              &mem_pool);
 
-        /* scapre from /proc/{$pid}/status */
-        get_proc_status(dir_result->d_name, format_str, prs, &mem_pool);
+    /* scrape from /proc/{$pid}/status */
+    get_proc_status(dir_result->d_name, format_str, prs, &mem_pool);
 
-        /* calculate precent cpu & mem values */
-        calc_prec(format_str, prs, &mem_pool);
+    /* extra Windows stuff */
+    get_proc_winexename(dir_result->d_name, format_str, prs, &mem_pool);
+    get_proc_winpid(dir_result->d_name, format_str, prs, &mem_pool);
+    
+    /* calculate precent cpu & mem values */
+    calc_prec(format_str, prs, &mem_pool);
 
-        /* Go ahead and bless into a perl object */
-        /* Linux.h defines const char* const* Fiels, but we cast it away, as bless_into_proc only understands char** */
-        bless_into_proc(format_str, (char**) field_names,
-            prs->uid,
-            prs->gid,
-            prs->pid,
-            prs->comm,
-            prs->ppid,
-            prs->pgrp,
-            prs->sid,
-            prs->tty,
-            prs->flags,
-            prs->minflt,
-            prs->cminflt,
-            prs->majflt,
-            prs->cmajflt,
-            prs->utime,
-            prs->stime,
-            prs->cutime,
-            prs->cstime,
-            prs->priority,
-            prs->start_time,
-            prs->vsize,
-            prs->rss,
-            prs->wchan,
-        prs->time,
-        prs->ctime,
-            prs->state,
-            prs->euid,
-            prs->suid,
-            prs->fuid,
-            prs->egid,
-            prs->sgid,
-            prs->fgid,
-            prs->pctcpu,
-            prs->pctmem,
-            prs->cmndline,
-            prs->exec,
-            prs->cwd,
-            prs->cmdline,
-            prs->cmdline_len,
-            prs->environ,
-            prs->environ_len,
-            prs->tracer
-        );
+    /* Go ahead and bless into a perl object */
+    /* Linux.h defines const char* const* Fiels, but we cast it away, as bless_into_proc only understands char** */
+    bless_into_proc(format_str, (char**) field_names,
+                    prs->uid,
+                    prs->gid,
+                    prs->pid,
+                    prs->comm,
+                    prs->ppid,
+                    prs->pgrp,
+                    prs->sid,
+                    prs->tty,
+                    prs->flags,
+                    prs->minflt,
+                    prs->cminflt,
+                    prs->majflt,
+                    prs->cmajflt,
+                    prs->utime,
+                    prs->stime,
+                    prs->cutime,
+                    prs->cstime,
+                    prs->priority,
+                    prs->start_time,
+                    prs->vsize,
+                    prs->rss,
+                    prs->time,
+                    prs->ctime,
+                    prs->state,
+                    prs->euid,
+                    prs->suid,
+                    prs->fuid,
+                    prs->egid,
+                    prs->sgid,
+                    prs->fgid,
+                    prs->pctcpu,
+                    prs->pctmem,
+                    prs->cmndline,
+                    prs->exec,
+                    prs->cwd,
+                    prs->cmdline,
+                    prs->cmdline_len,
+                    prs->environ,
+                    prs->environ_len,
+                    prs->winexename,
+                    prs->winpid
+                    );
 
-        /* we want a new prs, for the next itteration */
-        obstack_free(&mem_pool, prs);
-    }
+    /* we want a new prs, for the next itteration */
+    obstack_free(&mem_pool, prs);
+  }
 
-    closedir(dir);
+  closedir(dir);
 
-    /* free all our tempoary memory */
-    obstack_free(&mem_pool, NULL);
+  /* free all our tempoary memory */
+  obstack_free(&mem_pool, NULL);
 }
-
