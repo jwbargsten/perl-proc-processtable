@@ -1,6 +1,8 @@
-my @files = ( "Cygwin.c", "obstack.c", "obstack.h", "obstack_printf.c" );
+symlink "os/Cygwin.c", "OS.c" || die "Could not link os/Cygwin.c to OS.c\n";
 
-for my $f (@files) {
+my @obstack_files = ("obstack.c", "obstack.h", "obstack_printf.c");
+
+for my $f (@obstack_files) {
   symlink "os/$f", $f || die "Could not link os/$f to $f\n";
 }
 
