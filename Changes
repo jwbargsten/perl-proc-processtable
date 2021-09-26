@@ -1,5 +1,11 @@
 Revision history for Perl extension Proc::ProcessTable.
 
+0.634 2021-09-27
+  - Published the wrong branch (sorry, it was late). Now it is really fixed!
+
+0.633 2021-09-27
+  - Dummy version, no changes
+
 0.632 2021-09-27
   - The included obstack files confused linux compilation. Placed them
     in os/ and fixed compile steps
