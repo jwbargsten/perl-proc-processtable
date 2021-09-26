@@ -15,14 +15,14 @@
 #include <sys/types.h>
 #include <sys/vfs.h>    /* statfs */
 /* glibc only goodness */
-#include <obstack.h>    /* glibc's handy obstacks */
+#include "obstack.h"    /* glibc's handy obstacks */
 /* pthreads */
 #include <pthread.h>    /* pthread_once */
 
 #define obstack_chunk_alloc    malloc
 #define obstack_chunk_free     free
 
-#include "os/Linux.h"
+#include "os/Cygwin.h"
 
 /* NOTE: Before this was actually milliseconds even though it said microseconds, now it is correct. */
 #define JIFFIES_TO_MICROSECONDS(x)    (((x) * 1e6) / system_hertz)
@@ -127,9 +127,12 @@ static void init_static_vars()
   obstack_free(&mem_pool, file_text);
 
   /* did we scrape the number of pages successfuly? */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   if(total_memory == -1) {
     goto fail;
   }
+#pragma GCC diagnostic pop
 
   /* initialize system hertz value */
 
@@ -363,39 +366,29 @@ static bool get_proc_stat(char *pid, char *format_str, struct procstat *prs,
 
   /* scrape the remaining values */
   result = sscanf(stat_cont,
-                  " %c"                        /*  state */
-                  " %d"                        /*  ppid */
-                  " %d"                        /*  pgrp */
-                  " %d"                        /*  sid */
-                  " %d"                        /*  tty */
-                  " %d"                        /*  tty_pgid (dummy) */
-                  " %u"                        /*  flags */
-                  " %lu"                       /* minflt */
-                  " %lu"                       /* cminflt */
-                  " %lu"                       /* majflt */
-                  " %lu"                       /* cmajflt */
-                  " %llu"                      /* utime */
-                  " %llu"                      /* stime */
-                  " %llu"                      /* cutime */
-                  " %lld"                      /* cstime */
-                  " %ld"                       /* priority */
-                  " %ld"                       /* nice (dummy) */
-                  " %ld"                       /* num_threads (dummy) */
-                  " %d"                        /* itrealvalue (dummy) */
-                  " %llu"                      /* start_time */
-                  " %lu"                       /* vsize */
-                  " %ld"                       /* rss */
-                  " %ld"                       /* rsslim */
-                  " %lu"                       /* start_code (dummy) */
-                  " %lu"                       /* end_code (dummy) */
-                  " %lu"                       /* start_stack (dummy) */
-                  " %lu"                       /* esp (dummy) */
-                  " %lu"                       /* eip (dummy) */
-                  " %lu"                       /* pending (dummy) */
-                  " %lu"                       /* blocked (dummy) */
-                  " %lu"                       /* sigign (dummy) */
-                  " %lu"                       /* sigcatch (dummy) */
-                  " %lu"                       /* wchan (obsolete) */
+                  " %c"                        /*  3 state*/
+                  " %d"                        /*  4 ppid */
+                  " %d"                        /*  5 pgrp */
+                  " %d"                        /*  6 sid  */
+                  " %d"                        /*  7 tty */
+                  " %d"                        /*  8 tty_pgid */
+                  " %u"                        /*  9 flags */
+                  " %lu"                       /* 10 minflt */
+                  " %lu"                       /* 11 cminflt */
+                  " %lu"                       /* 12 majflt */
+                  " %lu"                       /* 13 cmajflt */
+                  " %llu"                      /* 14 utime */
+                  " %llu"                      /* 15 stime */
+                  " %lld"                      /* 16 cutime */
+                  " %lld"                      /* 17 cstime */
+                  " %ld"                       /* 18 priority */
+                  " %ld"                       /* 19 nice */
+                  " %ld"                       /* 20 num_threads */
+                  " %d"                        /* 21 itrealvalue */
+                  " %llu"                      /* 22 starttime */
+                  " %lu"                       /* 23 vsize */
+                  " %ld"                       /* 24 rss */
+                  " %ld"                       /* 25 rsslim */
                   ,
                   &prs->state_c,               /* %c */
                   &prs->ppid, &prs->pgrp,      /* %d %d */
@@ -412,21 +405,16 @@ static bool get_proc_stat(char *pid, char *format_str, struct procstat *prs,
                   &dummy_i,                       /* timeout obsolete */
                   &prs->start_time,
                   &prs->vsize, &prs->rss,
-                  &dummy_l,
-                  &dummy_l, &dummy_l,
-                  &dummy_l,
-                  &dummy_l, &dummy_l,
-                  &dummy_l, &dummy_l, &dummy_l, &dummy_l,
-                  &prs->wchan);
+                  &dummy_l);
 
-  /* 33 items in scanf's list... It's all or nothing baby */
-  if(result != 33) {
+  /* 23 items in scanf's list... It's all or nothing baby */
+  if(result != 23) {
     read_ok = false;
     goto done;
   }
 
   /* enable fields; F_STATE is not the range */
-  field_enable_range(format_str, F_PID, F_WCHAN);
+  field_enable_range(format_str, F_PID, F_RSS);
 
 done:
   obstack_free(mem_pool, stat_text);
@@ -518,6 +506,39 @@ static void get_proc_environ(char *pid, char *format_str, struct procstat *prs,
   field_enable(format_str, F_ENVIRON);
 }
 
+static void get_proc_winexename(char *pid, char *format_str, struct procstat *prs,
+                                struct obstack *mem_pool)
+{
+  char *winexename_text;
+  off_t winexename_len;
+
+  if((winexename_text = read_file(pid, "winexename", &winexename_len, mem_pool)) == NULL) {
+    return;
+  }
+
+  prs->winexename = winexename_text;
+  field_enable(format_str, F_WINEXENAME);
+}
+
+static void get_proc_winpid(char *pid, char *format_str, struct procstat *prs,
+                            struct obstack *mem_pool)
+{
+  char *winpid_text;
+  off_t winpid_len;
+  int   res;
+
+  if((winpid_text = read_file(pid, "winpid", &winpid_len, mem_pool)) == NULL) {
+    return;
+  }
+
+  res = sscanf(winpid_text, "%d", &prs->winpid);
+  if(res == 1) {
+    field_enable(format_str, F_WINPID);
+  }
+
+  obstack_free(mem_pool, winpid_text);
+}
+
 static void get_proc_status(char *pid, char *format_str, struct procstat *prs,
                             struct obstack *mem_pool)
 {
@@ -551,13 +572,10 @@ static void get_proc_status(char *pid, char *format_str, struct procstat *prs,
     } else if(strncmp(loc, "Gid:", 4) == 0) {
       sscanf(loc + 4, " %d %d %d %d", &dummy_i, &prs->egid, &prs->sgid, &prs->fgid);
       field_enable_range(format_str, F_EGID, F_FGID);
-    } else if(strncmp(loc, "TracerPid:", 10) == 0) {
-      sscanf(loc + 10, " %d", &prs->tracer);
-      field_enable(format_str, F_TRACER);
     }
 
     /* short circuit condition */
-    if(islower(format_str[F_EUID]) && islower(format_str[F_EGID]) && islower(format_str[F_TRACER])) {
+    if(islower((int)format_str[F_EUID]) && islower((int)format_str[F_EGID])) {
       goto done;
     }
   }
@@ -581,16 +599,9 @@ static void fixup_stat_values(char *format_str, struct procstat *prs)
     prs->state = get_string(SLEEP);
     break;
 
-  case 'W':
-    prs->state = get_string(WAIT);         /*Waking state.  Could be mapped to WAKING, but would break backward compatibility */
-    break;
-
+  case 'O':
   case 'R':
     prs->state = get_string(RUN);
-    break;
-
-  case 'I':
-    prs->state = get_string(IDLE);
     break;
 
   case 'Z':
@@ -602,28 +613,7 @@ static void fixup_stat_values(char *format_str, struct procstat *prs)
     break;
 
   case 'T':
-  case 'H':       /* GNU Hurd HALTED state */
     prs->state = get_string(STOP);
-    break;
-
-  case 'x':
-    prs->state = get_string(DEAD);
-    break;
-
-  case 'X':
-    prs->state = get_string(DEAD);
-    break;
-
-  case 'K':
-    prs->state = get_string(WAKEKILL);
-    break;
-
-  case 't':
-    prs->state = get_string(TRACINGSTOP);
-    break;
-
-  case 'P':
-    prs->state = get_string(PARKED);
     break;
 
   /* unknown state, state is already set to NULL */
@@ -692,7 +682,7 @@ static void calc_prec(char *format_str, struct procstat *prs, struct obstack *me
 inline static bool is_pid(const char *str)
 {
   for(; *str; str++) {
-    if(!isdigit(*str)) {
+    if(!isdigit((int)*str)) {
       return false;
     }
   }
@@ -791,6 +781,10 @@ void OS_get_table()
     /* scrape from /proc/{$pid}/status */
     get_proc_status(dir_result->d_name, format_str, prs, &mem_pool);
 
+    /* extra Windows stuff */
+    get_proc_winexename(dir_result->d_name, format_str, prs, &mem_pool);
+    get_proc_winpid(dir_result->d_name, format_str, prs, &mem_pool);
+
     /* calculate precent cpu & mem values */
     calc_prec(format_str, prs, &mem_pool);
 
@@ -818,7 +812,6 @@ void OS_get_table()
                     prs->start_time,
                     prs->vsize,
                     prs->rss,
-                    prs->wchan,
                     prs->time,
                     prs->ctime,
                     prs->state,
@@ -837,7 +830,8 @@ void OS_get_table()
                     prs->cmdline_len,
                     prs->environ,
                     prs->environ_len,
-                    prs->tracer
+                    prs->winexename,
+                    prs->winpid
                     );
 
     /* we want a new prs, for the next itteration */
