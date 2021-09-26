@@ -1,5 +1,10 @@
 Revision history for Perl extension Proc::ProcessTable.
 
+0.631 2021-09-26
+  - added cygwin implementation/extension of ASSI
+  - aaand we are back to 3-digit version numbers due to quirks
+    of rpmvercmp, which thinks that 0.612 is higer than 0.62
+
 0.62 2021-09-13
   - updated Changes file to stick to perl5-module-meta recommendations
   - changed version scheme back to 2 digits after major version.
