@@ -1,5 +1,9 @@
 Revision history for Perl extension Proc::ProcessTable.
 
+0.632 2021-09-27
+  - The included obstack files confused linux compilation. Placed them
+    in os/ and fixed compile steps
+
 0.631 2021-09-26
   - added cygwin implementation/extension of ASSI
   - aaand we are back to 3-digit version numbers due to quirks
