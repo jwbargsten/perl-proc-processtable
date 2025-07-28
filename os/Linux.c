@@ -717,6 +717,114 @@ inline static bool pid_exists(const char *str, struct obstack *mem_pool)
   return result;
 }
 
+void get_one_proc_stat(char * dirname, struct obstack *mem_pool)
+{
+  /* container for scraped process values */
+  struct procstat *prs;
+
+  /* string containing our local copy of format_str, elements will be
+   * lower cased if we are able to figure them out */
+  char *format_str;
+
+  /* Only look at this file if it's a proc id; that is, all numbers */
+  if(!is_pid(dirname)) {
+    return;
+  }
+
+  /* allocate container for storing process values */
+  prs = obstack_alloc(mem_pool, sizeof(struct procstat));
+  bzero(prs, sizeof(struct procstat));
+
+  /* initialize the format string */
+  obstack_printf(mem_pool, "%s", get_string(STR_DEFAULT_FORMAT));
+  obstack_1grow(mem_pool, '\0');
+  format_str = (char *)obstack_finish(mem_pool);
+
+  /* get process' uid/guid */
+  get_user_info(dirname, format_str, prs, mem_pool);
+
+  /* scrape /proc/${pid}/stat */
+  if(get_proc_stat(dirname, format_str, prs, mem_pool) == false) {
+    /* did the pid directory go away mid flight? */
+    if(pid_exists(dirname, mem_pool) == false) {
+      return;
+    }
+  }
+
+  /* correct values (times) found in /proc/${pid}/stat */
+  fixup_stat_values(format_str, prs);
+
+  /* get process' cmndline */
+  get_proc_cmndline(dirname, format_str, prs, mem_pool);
+
+  /* get process' cmdline */
+  get_proc_cmdline(dirname, format_str, prs, mem_pool);
+
+  /* get process' environ */
+  get_proc_environ(dirname, format_str, prs, mem_pool);
+
+  /* get process' cwd & exec values from the symblink */
+  eval_link(dirname, "cwd", F_CWD, &prs->cwd, format_str,
+            mem_pool);
+  eval_link(dirname, "exe", F_EXEC, &prs->exec, format_str,
+            mem_pool);
+
+  /* scrape from /proc/{$pid}/status */
+  get_proc_status(dirname, format_str, prs, mem_pool);
+
+  /* calculate precent cpu & mem values */
+  calc_prec(format_str, prs, mem_pool);
+
+  /* Go ahead and bless into a perl object */
+  /* Linux.h defines const char* const* Fiels, but we cast it away, as bless_into_proc only understands char** */
+  bless_into_proc(format_str, (char **)field_names,
+                  prs->uid,
+                  prs->gid,
+                  prs->pid,
+                  prs->comm,
+                  prs->ppid,
+                  prs->pgrp,
+                  prs->sid,
+                  prs->tty,
+                  prs->flags,
+                  prs->minflt,
+                  prs->cminflt,
+                  prs->majflt,
+                  prs->cmajflt,
+                  prs->utime,
+                  prs->stime,
+                  prs->cutime,
+                  prs->cstime,
+                  prs->priority,
+                  prs->start_time,
+                  prs->vsize,
+                  prs->rss,
+                  prs->wchan,
+                  prs->time,
+                  prs->ctime,
+                  prs->state,
+                  prs->euid,
+                  prs->suid,
+                  prs->fuid,
+                  prs->egid,
+                  prs->sgid,
+                  prs->fgid,
+                  prs->pctcpu,
+                  prs->pctmem,
+                  prs->cmndline,
+                  prs->exec,
+                  prs->cwd,
+                  prs->cmdline,
+                  prs->cmdline_len,
+                  prs->environ,
+                  prs->environ_len,
+                  prs->tracer
+                  );
+
+  /* we want a new prs, for the next itteration */
+  obstack_free(mem_pool, prs);
+}
+
 void OS_get_table()
 {
   /* dir walker storage */
@@ -725,13 +833,6 @@ void OS_get_table()
 
   /* all our storage is going to be here */
   struct obstack mem_pool;
-
-  /* container for scraped process values */
-  struct procstat *prs;
-
-  /* string containing our local copy of format_str, elements will be
-   * lower cased if we are able to figure them out */
-  char *format_str;
 
   /* initialize a small memory pool for this function */
   obstack_init(&mem_pool);
@@ -745,103 +846,7 @@ void OS_get_table()
 
   /* Iterate through all the process entries (numeric) under /proc */
   while(readdir_r(dir, dir_ent, &dir_result) == 0 && dir_result) {
-    /* Only look at this file if it's a proc id; that is, all numbers */
-    if(!is_pid(dir_result->d_name)) {
-      continue;
-    }
-
-    /* allocate container for storing process values */
-    prs = obstack_alloc(&mem_pool, sizeof(struct procstat));
-    bzero(prs, sizeof(struct procstat));
-
-    /* initialize the format string */
-    obstack_printf(&mem_pool, "%s", get_string(STR_DEFAULT_FORMAT));
-    obstack_1grow(&mem_pool, '\0');
-    format_str = (char *)obstack_finish(&mem_pool);
-
-    /* get process' uid/guid */
-    get_user_info(dir_result->d_name, format_str, prs, &mem_pool);
-
-    /* scrape /proc/${pid}/stat */
-    if(get_proc_stat(dir_result->d_name, format_str, prs, &mem_pool) == false) {
-      /* did the pid directory go away mid flight? */
-      if(pid_exists(dir_result->d_name, &mem_pool) == false) {
-        continue;
-      }
-    }
-
-    /* correct values (times) found in /proc/${pid}/stat */
-    fixup_stat_values(format_str, prs);
-
-    /* get process' cmndline */
-    get_proc_cmndline(dir_result->d_name, format_str, prs, &mem_pool);
-
-    /* get process' cmdline */
-    get_proc_cmdline(dir_result->d_name, format_str, prs, &mem_pool);
-
-    /* get process' environ */
-    get_proc_environ(dir_result->d_name, format_str, prs, &mem_pool);
-
-    /* get process' cwd & exec values from the symblink */
-    eval_link(dir_result->d_name, "cwd", F_CWD, &prs->cwd, format_str,
-              &mem_pool);
-    eval_link(dir_result->d_name, "exe", F_EXEC, &prs->exec, format_str,
-              &mem_pool);
-
-    /* scrape from /proc/{$pid}/status */
-    get_proc_status(dir_result->d_name, format_str, prs, &mem_pool);
-
-    /* calculate precent cpu & mem values */
-    calc_prec(format_str, prs, &mem_pool);
-
-    /* Go ahead and bless into a perl object */
-    /* Linux.h defines const char* const* Fiels, but we cast it away, as bless_into_proc only understands char** */
-    bless_into_proc(format_str, (char **)field_names,
-                    prs->uid,
-                    prs->gid,
-                    prs->pid,
-                    prs->comm,
-                    prs->ppid,
-                    prs->pgrp,
-                    prs->sid,
-                    prs->tty,
-                    prs->flags,
-                    prs->minflt,
-                    prs->cminflt,
-                    prs->majflt,
-                    prs->cmajflt,
-                    prs->utime,
-                    prs->stime,
-                    prs->cutime,
-                    prs->cstime,
-                    prs->priority,
-                    prs->start_time,
-                    prs->vsize,
-                    prs->rss,
-                    prs->wchan,
-                    prs->time,
-                    prs->ctime,
-                    prs->state,
-                    prs->euid,
-                    prs->suid,
-                    prs->fuid,
-                    prs->egid,
-                    prs->sgid,
-                    prs->fgid,
-                    prs->pctcpu,
-                    prs->pctmem,
-                    prs->cmndline,
-                    prs->exec,
-                    prs->cwd,
-                    prs->cmdline,
-                    prs->cmdline_len,
-                    prs->environ,
-                    prs->environ_len,
-                    prs->tracer
-                    );
-
-    /* we want a new prs, for the next itteration */
-    obstack_free(&mem_pool, prs);
+    get_one_proc_stat(dir_result->d_name, &mem_pool);
   }
 
   closedir(dir);
@@ -849,3 +854,24 @@ void OS_get_table()
   /* free all our tempoary memory */
   obstack_free(&mem_pool, NULL);
 }
+
+void OS_get_table_pids(char **pids_array)
+{
+  /* all our storage is going to be here */
+  struct obstack  mem_pool;
+
+  /* initlize a small memory pool for this function */
+  obstack_init(&mem_pool);
+
+  int i = 0;
+  char * pid;
+
+  while ( ( pid = pids_array[i] ) ) {
+    get_one_proc_stat(pid, &mem_pool);
+    i++;
+  }
+
+  /* free all our tempoary memory */
+  obstack_free(&mem_pool, NULL);
+}
+
