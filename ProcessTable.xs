@@ -36,6 +36,9 @@ void ppt_die(const char*, ...);
 void store_ttydev(HV*, unsigned long);
 void bless_into_proc(char* , char**, ...);
 void OS_get_table();
+#ifdef __linux__
+void OS_get_table_pids(char**);
+#endif
 char* OS_initialize();
 
 char** Fields = NULL; 
@@ -334,7 +337,7 @@ constant(name,arg)
 	int		arg
 
 SV*
-table(obj)
+table(obj, ...)
      SV*  obj
      CODE:
 
@@ -376,7 +379,24 @@ table(obj)
 
      /* Call get_table to build the process objects and push them onto
         the Proclist */
+#ifdef __linux__
+     if ( items > 1 ) {
+       AV* pids = (AV*)SvRV(ST(1));
+       int pid_len = av_len(pids);
+       char ** pids_array = malloc((pid_len + 2 ) * sizeof(char*));
+       int i;
+       for (i = 0; i <= pid_len; i++) {
+         SV** elem = av_fetch(pids, i, 0);
+         pids_array[i] = SvPV_nolen(*elem);
+       }
+       pids_array[pid_len+1] = (char * ) NULL;
+       OS_get_table_pids(pids_array);
+     } else {
+       OS_get_table();
+     }
+#else
      OS_get_table();
+#endif
 
      /* Return a ref to our process list */
      RETVAL = newRV_inc((SV*) Proclist);
