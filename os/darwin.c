@@ -99,8 +99,8 @@ void OS_get_table(void) {
 	int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0 };
 	int nentries;
 	size_t orig_bufSize = 0;
-	char pctcpu[6];
-	char pctmem[6];
+	char pctcpu[8];
+	char pctmem[8];
 	int retry_count = 0;
 	int state;
 
@@ -189,9 +189,9 @@ void OS_get_table(void) {
 #endif	/* ndef TH_USAGE_SCALE */
 #define usage_to_percent(u)	((u*100)/TH_USAGE_SCALE)
 #define usage_to_tenths(u)	(((u*1000)/TH_USAGE_SCALE) % 10)
-		sprintf (pctcpu, "%d.%01d", usage_to_percent (ki->cpu_usage),
+		snprintf (pctcpu, 8, "%d.%01d", usage_to_percent (ki->cpu_usage),
 			usage_to_tenths (ki->cpu_usage));
-		sprintf (pctmem, "%.1f", ((float) ki->tasks_info.resident_size)
+		snprintf (pctmem, 8, "%.1f", ((float) ki->tasks_info.resident_size)
 			* 100 / mempages);
 
 #ifdef TIME_IN_MICROSECONDS
