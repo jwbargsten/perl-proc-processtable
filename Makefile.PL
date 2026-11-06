@@ -3,6 +3,13 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
+# The OS-specific code comes from the hints file for $^O, which links os/<OS>.c
+# in as OS.c. Without one, the module builds but cannot load (OS_get_table and
+# OS_initialize are undefined), so stop here: "OS unsupported" makes CPAN
+# Testers grade it NA instead of FAIL.
+die "OS unsupported: Proc::ProcessTable has no implementation for $^O\n"
+  unless -f "hints/$^O.pl";
+
 sub MY::c_o {
   package MY; # so that "SUPER" works right
   my $inherited = shift->SUPER::c_o(@_);
